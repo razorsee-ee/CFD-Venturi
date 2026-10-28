@@ -35,7 +35,7 @@ CP_OIL = 2100.0          # J/(kg K), as constantProperties in cloudProperties
 CP_GAS, PR_GAS = 2835.0, 1.04
 MDOT_GAS, RHO_GAS = 21.11, 1.106
 L_EXT = 2000.0           # outlet extension in mesh/make_blockmesh.py, mm
-DX, NTHETA = 50.0, 24    # bin size: 50 mm along the axis, 15 deg around
+DX, NTHETA = 100.0, 24   # bin size: 100 mm along the axis (> axial cell size), 15 deg around
 
 # film temperature bands for heavy oil (rough guide; real limits depend on the
 # oil: Conradson carbon, asphaltenes, residence time of the film)
@@ -222,6 +222,12 @@ def main():
             p(f"  T плёнки {lo:3.0f}–{hi if hi < 1e8 else 999:3.0f} °C (риск {name:9s}): "
               f"{area[sel].sum():5.2f} м², {100 * (mflux[sel] * area[sel]).sum() / max((mflux[wet] * area[wet]).sum(), 1e-12):5.1f} % масла")
             lo = hi
+        real = xc <= geo.X_END
+        m_all = (mflux * area).sum()
+        p(f"  из осевшего на обечайку: в аппарате (до конца диффузора) "
+          f"{100 * (mflux[real] * area[real]).sum() / max(m_all, 1e-12):.0f} %, "
+          f"на расчётном удлинении за диффузором {100 * (mflux[~real] * area[~real]).sum() / max(m_all, 1e-12):.0f} % "
+          f"(в реальности это следующий аппарат/газоход)")
         xs = [x for x in xc[wet.any(1)]]
         p(f"Масло попадает на стенку на участке x = {min(xs):.0f}…{max(xs):.0f} мм "
           f"(конфузор {geo.X_CONV:.0f}…{geo.X_THROAT:.0f}, горловина до {geo.X_DIFF:.0f})")
@@ -257,13 +263,14 @@ def plot(case, xb, tb, mflux, Tf, wet, ok, hits, nS, xc, area, summary):
 
     fig = plt.figure(figsize=(15, 10.5))
     gs = fig.add_gridspec(3, 2, height_ratios=[1, 1, 0.9])
-    marks = [(geo.X_STEM, "лансет"), (geo.X_DISK_FRONT, "диск"), (geo.X_THROAT, "горловина"), (geo.X_DIFF, "диффузор")]
+    marks = [(geo.X_DISK_FRONT, "диск"), (geo.X_THROAT, "горловина"), (geo.X_DIFF, "диффузор"),
+             (geo.X_END, "конец диффузора")]
 
     def deco(a):
         for x, name in marks:
             if x0 <= x <= x1:
                 a.axvline(x, color="k", lw=0.7, ls="--")
-                a.text(x, 165, name, fontsize=8, ha="center", va="top",
+                a.text(x + 15, 170, name, fontsize=8, ha="left", va="top", rotation=90,
                        bbox=dict(fc="white", ec="none", pad=1, alpha=0.8))
         a.set_ylabel("угол от верха, ° (0 = сторона лансета)")
         a.set_xlabel("x вдоль оси, мм")
