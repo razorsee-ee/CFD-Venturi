@@ -55,7 +55,7 @@ ax.annotate("вода, 20–30 °C", (x_tube_in, R_in + 14), (x_tube_in - 130, R
 # gas arrows
 for y in (-70, -35, 35, 70):
     ax.add_patch(FancyArrowPatch((x0 + 10, y), (x0 + 120, y), arrowstyle="-|>", mutation_scale=18, color=GAS, lw=2))
-ax.text(x0 + 15, 0, "горячий воздух ~470 °C", color=GAS, fontsize=11, va="center")
+ax.text(x0 + 15, -52, "горячий воздух ~470 °C", color=GAS, fontsize=11, va="center")
 ax.add_patch(FancyArrowPatch((x4 + 20, 0), (x5 + 60, 0), arrowstyle="-|>", mutation_scale=18, color=GAS, lw=2))
 ax.text(x4 + 30, 12, "газ + капли", color=GAS, fontsize=11)
 # water umbrella sheet from disk edge + droplets carried to throat
