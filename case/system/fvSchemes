@@ -31,7 +31,7 @@ gradSchemes
 divSchemes
 {
     default         none;
-    div(phi,U)      bounded Gauss upwind;   // 1st order for robustness; linearUpwindV limited once stable
+    div(phi,U)      bounded Gauss linearUpwindV limited;   // 2nd order: keeps the inlet swirl (upwind damps it ~30 %); with omega 0 at the inlet use upwind (diffuser separation oscillates)
     div(phi,h)      bounded Gauss upwind;
     div(phi,K)      bounded Gauss upwind;
     div(phid,p)     Gauss upwind;

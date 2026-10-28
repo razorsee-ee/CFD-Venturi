@@ -29,13 +29,13 @@ X_REF0 = p.X_STEM - 150.0  # start of the fine axial zone around the nozzle
 
 # axial stations (mm) and target axial cell size there (mm)
 STATIONS = [
-    (0.0, 30.0),
+    (0.0, 60.0),            # coarse at the inlet ...
     (p.X_CONV, 20.0),
     (X_REF0, 6.0),
     (p.X_THROAT, 6.0),
     (p.X_DIFF, 8.0),
     (p.X_END, 30.0),
-    (p.X_END + L_EXT, 60.0),
+    (p.X_END + L_EXT, 100.0),   # ... and towards the outlet
 ]
 
 

@@ -20,11 +20,20 @@ internalField   uniform (30 0 0);
 
 boundaryField
 {
+    // Swirling inflow: the gas comes from the vortex finder of a cyclone
+    // through a bend ~2 m upstream. Strong swirl assumed, swirl number
+    // S = G_theta/(R G_x) = omega R/(2 U) = 0.6 for solid-body rotation:
+    // omega = 2*0.6*31.1/0.442 = 84 rad/s, 37 m/s tangential at the wall.
+    // omega 0 -> no swirl.
     inlet
     {
-        type            flowRateInletVelocity;
+        type            swirlFlowRateInletVelocity;
         massFlowRate    constant 21.11;     // kg/s, 76 t/h of pyrolysis gas
         rhoInlet        1.106;              // initial guess only
+        origin          (0 0 0);
+        axis            (1 0 0);
+        radialVelocity  constant 0;
+        omega           constant 84;        // rad/s
     }
     outlet
     {
