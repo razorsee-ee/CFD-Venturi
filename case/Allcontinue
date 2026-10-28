@@ -1,0 +1,16 @@
+#!/bin/sh
+# Continue the run from the latest saved iteration (no remeshing, fields kept).
+# Stop a running job first with:  foamDictionary system/controlDict -entry stopAt -set writeNow
+cd ${0%/*} || exit 1
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+foamDictionary system/controlDict -entry stopAt -set endTime > /dev/null
+
+if [ "$(getNumberOfProcessors)" -gt 1 ]
+then
+    runParallel -a $(getApplication)
+else
+    runApplication -a $(getApplication)
+fi
+
+#------------------------------------------------------------------------------
