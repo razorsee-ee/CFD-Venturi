@@ -37,7 +37,7 @@ PIMPLE
 {
     nNonOrthogonalCorrectors 1;
     transonic       no;
-    consistent      no;
+    consistent      yes;    // SIMPLEC: with SIMPLE the swirling case oscillated (inlet p +-50 kPa) on finer meshes
 
     residualControl
     {
@@ -51,7 +51,7 @@ relaxationFactors
 {
     fields
     {
-        p               0.3;
+        p               1;      // no p relaxation with SIMPLEC
         rho             0.05;   // essential: with 1 the steady compressible p-rho coupling diverges
     }
     equations
