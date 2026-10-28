@@ -6,7 +6,7 @@ cd ${0%/*} || exit 1
 runApplication blockMesh
 runApplication surfaceFeatures
 runApplication snappyHexMesh -overwrite
-runApplication checkMesh -allTopology -allGeometry
+runApplication checkMesh
 
 rm -rf 0 && cp -r 0.orig 0
 rm -f constant/fvModels            # gas only

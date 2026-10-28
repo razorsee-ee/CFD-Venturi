@@ -58,6 +58,15 @@ def column(cols, rows, key):
     return xs, ys
 
 
+def zoom(a, ys):
+    """Set y limits from the last 90 % of the data, so start-up spikes do not flatten the curve."""
+    tail = [y for y in ys[len(ys) // 10:] if not math.isnan(y)]
+    if len(tail) > 5:
+        lo, hi = min(tail), max(tail)
+        pad = max(0.1 * (hi - lo), 0.01 * abs(hi), 1e-3)
+        a.set_ylim(lo - pad, hi + pad)
+
+
 def draw(fig, case):
     fig.clf()
     ax = fig.subplots(2, 2)
@@ -84,6 +93,7 @@ def draw(fig, case):
     dp = [(x, p - po_map[x]) for x, p in zip(xi, pi) if x in po_map]
     if dp:
         a.plot([d[0] for d in dp], [d[1] / 1000 for d in dp], color="#1c7ed6")
+        zoom(a, [d[1] / 1000 for d in dp])
         a.set_title(f"Перепад давления вход-выход: {dp[-1][1] / 1000:.2f} кПа")
     else:
         a.set_title("Перепад давления (нет данных)")
@@ -93,6 +103,7 @@ def draw(fig, case):
     xt, tout = column(co, ro, "(T)")
     if tout:
         a.plot(xt, [t - 273.15 for t in tout], color="#e8590c")
+        zoom(a, [t - 273.15 for t in tout])
         a.set_title(f"Средняя T на выходе: {tout[-1] - 273.15:.1f} °C")
     else:
         a.set_title("T на выходе (нет данных)")
@@ -103,6 +114,7 @@ def draw(fig, case):
     xm, mf = column(cm, rm, "(phi)")
     if mf:
         a.plot(xm, [abs(m) for m in mf], color="#2f9e44")
+        zoom(a, [abs(m) for m in mf] + [21.11])
         a.axhline(21.11, color="gray", ls="--", lw=1, label="вход 21.11 кг/с")
         a.set_title(f"Расход газа на выходе: {abs(mf[-1]):.2f} кг/с")
         a.legend(fontsize=8)
