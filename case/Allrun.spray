@@ -6,6 +6,8 @@ cd ${0%/*} || exit 1
 cp constant/fvModels.spray constant/fvModels
 foamDictionary system/controlDict -entry endTime -set 5000
 
+./plot                             # live convergence window
+
 if [ "$(getNumberOfProcessors)" -gt 1 ]
 then
     runParallel -s spray $(getApplication)

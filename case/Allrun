@@ -11,6 +11,8 @@ runApplication checkMesh -allTopology -allGeometry
 rm -rf 0 && cp -r 0.orig 0
 rm -f constant/fvModels            # gas only
 
+./plot                             # live convergence window
+
 if [ "$(getNumberOfProcessors)" -gt 1 ]
 then
     runApplication decomposePar -force

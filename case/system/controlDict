@@ -46,9 +46,6 @@ timePrecision   6;
 
 runTimeModifiable true;
 
-functions
-{
-    #include "functions"
-}
+// function objects (residuals, pressure drop, ...) are in system/functions
 
 // ************************************************************************* //

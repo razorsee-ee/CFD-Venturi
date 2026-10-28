@@ -6,6 +6,8 @@ cd ${0%/*} || exit 1
 
 foamDictionary system/controlDict -entry stopAt -set endTime > /dev/null
 
+./plot                             # live convergence window
+
 if [ "$(getNumberOfProcessors)" -gt 1 ]
 then
     runParallel -a $(getApplication)
