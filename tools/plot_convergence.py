@@ -7,6 +7,7 @@ Needs: pip install matplotlib
 """
 import argparse
 import math
+import time
 from pathlib import Path
 
 import matplotlib
@@ -119,11 +120,21 @@ def main():
 
     fig = plt.figure(figsize=(13, 8))
     if args.watch:
-        plt.ion()
-        while plt.fignum_exists(fig.number):
-            draw(fig, case)
-            fig.savefig(case / "convergence.png", dpi=100)
-            plt.pause(args.watch)
+        try:
+            plt.ion()
+            plt.show(block=False)
+            while plt.fignum_exists(fig.number):
+                draw(fig, case)
+                fig.savefig(case / "convergence.png", dpi=100)
+                plt.pause(args.watch)
+        except Exception as e:  # no GUI backend: keep refreshing the PNG only
+            print(f"no plot window ({e}); updating {case / 'convergence.png'} every {args.watch:g} s")
+            plt.switch_backend("Agg")
+            fig = plt.figure(figsize=(13, 8))
+            while True:
+                draw(fig, case)
+                fig.savefig(case / "convergence.png", dpi=100)
+                time.sleep(args.watch)
     else:
         draw(fig, case)
         fig.savefig(case / "convergence.png", dpi=100)
