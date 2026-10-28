@@ -1,0 +1,22 @@
+#!/bin/sh
+# Stage 1: mesh + gas-only steady solution.
+cd ${0%/*} || exit 1
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+runApplication blockMesh
+runApplication surfaceFeatures
+runApplication snappyHexMesh -overwrite
+runApplication checkMesh -allTopology -allGeometry
+
+rm -rf 0 && cp -r 0.orig 0
+rm -f constant/fvModels            # gas only
+
+if [ "$(getNumberOfProcessors)" -gt 1 ]
+then
+    runApplication decomposePar -force
+    runParallel $(getApplication)
+else
+    runApplication $(getApplication)
+fi
+
+#------------------------------------------------------------------------------

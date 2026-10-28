@@ -1,0 +1,152 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      cloudProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Heavy oil spray, 32 t/h at 100 C. Inert droplets: drag + heat exchange,
+// no evaporation, no condensation, no breakup.
+
+type        thermoCloud;
+
+solution
+{
+    coupled         true;
+    transient       no;
+    calcFrequency   10;         // cloud is re-tracked every 10 gas iterations
+    maxTrackTime    1.0;        // s, > residence time in the scrubber
+    maxCo           0.3;
+    cellValueSourceCorrection off;
+
+    sourceTerms
+    {
+        resetOnStartup  false;
+        schemes
+        {
+            U               semiImplicit 1;
+            h               semiImplicit 1;
+            radiation       semiImplicit 1;
+        }
+    }
+
+    interpolationSchemes
+    {
+        rho             cell;
+        U               cellPoint;
+        mu              cell;
+        T               cell;
+        Cp              cell;
+        kappa           cell;
+        p               cell;
+    }
+
+    integrationSchemes
+    {
+        U               Euler;
+        T               analytical;
+    }
+}
+
+constantProperties
+{
+    rho0            920;        // heavy oil at 100 C
+    T0              373.15;
+    Cp0             2100;
+    epsilon0        1;
+    f0              0.5;
+}
+
+subModels
+{
+    particleForces
+    {
+        sphereDrag;
+        gravity;
+    }
+
+    injectionModels
+    {
+        deflectorDisk
+        {
+            // Oil sheet leaving the rim of the D65 deflector disk:
+            // ring of injection points just downstream of the disk face
+            type            coneInjection;
+            massFlowRate    8.889;          // kg/s = 32 t/h
+            parcelsPerSecond 4000;          // parcels per cloud evaluation (steady)
+            uniformParcelSize volume;
+
+            position        (2.417 0 0);
+            direction       (1 0 0);
+            injectionMethod disc;
+            dInner          0.060;
+            dOuter          0.066;
+            thetaInner      65;             // deg from the axis: near-radial sheet
+            thetaOuter      85;
+
+            flowType        constantVelocity;
+            Umag            25;             // m/s, jet from a ~20 mm orifice minus losses
+
+            sizeDistribution
+            {
+                type        RosinRammler;
+                Q           3;
+                min         10e-6;
+                max         500e-6;
+                d           110e-6;         // d32 ~ 90 um (Nukiyama-Tanasawa)
+                n           2.5;
+            }
+        }
+    }
+
+    dispersionModel stochasticDispersionRAS;
+
+    patchInteractionModel standardWallInteraction;
+
+    heatTransferModel RanzMarshall;
+
+    stochasticCollisionModel none;
+
+    surfaceFilmModel none;
+
+    radiation       off;
+
+    standardWallInteractionCoeffs
+    {
+        type            stick;      // oil hitting the shell or the lance stays there
+    }
+
+    RanzMarshallCoeffs
+    {
+        BirdCorrection  false;
+    }
+}
+
+cloudFunctions
+{
+    outletParcels
+    {
+        type            patchPostProcessing;
+        maxStoredParcels 20000;
+        patches         (outlet);
+    }
+
+    tracks
+    {
+        type            particleTracks;
+        trackInterval   5;
+        maxSamples      200000;
+        resetOnWrite    yes;
+    }
+}
+
+// ************************************************************************* //

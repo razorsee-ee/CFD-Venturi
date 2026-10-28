@@ -1,0 +1,17 @@
+#!/bin/sh
+# Stage 2: switch the oil spray on and continue from the converged gas field.
+cd ${0%/*} || exit 1
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+cp constant/fvModels.spray constant/fvModels
+foamDictionary system/controlDict -entry endTime -set 5000
+
+if [ "$(getNumberOfProcessors)" -gt 1 ]
+then
+    runParallel -s spray $(getApplication)
+    runApplication -s spray reconstructPar -latestTime
+else
+    runApplication -s spray $(getApplication)
+fi
+
+#------------------------------------------------------------------------------

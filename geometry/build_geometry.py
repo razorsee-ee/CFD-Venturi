@@ -3,7 +3,11 @@
 Outputs (geometry/out/):
   venturi_fluid.step     fluid volume in mm, for checking in FreeCAD
   inlet.stl, outlet.stl, wall.stl, nozzle.stl
-                         surfaces in metres, one file per patch, for snappyHexMesh
+                         surfaces of the fluid volume in metres, one file per patch
+case/constant/geometry/nozzle.stl
+                         closed nozzle surface in metres for snappyHexMesh; the 6 mm
+                         struts are left out (too small to matter for the gas flow and
+                         they would need ~1 mm cells)
 """
 import math
 from pathlib import Path
@@ -22,7 +26,7 @@ def shell():
     return cq.Workplane("XY").polyline(prof).close().revolve(360, (0, 0, 0), (1, 0, 0))
 
 
-def nozzle():
+def nozzle(struts=True):
     """Lance, nozzle body, struts and deflector disk as one solid."""
     top = p.wall_radius(p.X_STEM) + 50  # extend through the wall so the cut is clean
     stem = (cq.Workplane("XZ", origin=(p.X_STEM, 0, 0)).circle(p.D_STEM / 2)
@@ -30,7 +34,7 @@ def nozzle():
     body = cq.Workplane("YZ", origin=(p.X_STEM, 0, 0)).circle(p.D_BODY / 2).extrude(p.L_BODY)
     disk = cq.Workplane("YZ", origin=(p.X_DISK_BACK, 0, 0)).circle(p.D_DISK / 2).extrude(p.T_DISK)
     solid = stem.union(body).union(disk)
-    for k in range(p.N_STRUTS):
+    for k in range(p.N_STRUTS if struts else 0):
         a = math.radians(90 + 360 * k / p.N_STRUTS)
         a0 = cq.Vector(p.X_NOZZLE - 2, p.R_STRUT_BODY * math.cos(a), p.R_STRUT_BODY * math.sin(a))
         a1 = cq.Vector(p.X_DISK_BACK + 2, p.R_STRUT_DISK * math.cos(a), p.R_STRUT_DISK * math.sin(a))
@@ -51,6 +55,15 @@ def export_patch(faces, name):
         lines[0] = f"solid {name}"
         lines[-1] = f"endsolid {name}"
         path.write_text("\n".join(lines) + "\n")
+
+
+def export_cfd_nozzle():
+    path = Path(__file__).parent.parent / "case" / "constant" / "geometry" / "nozzle.stl"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    nozzle(struts=False).val().scale(1e-3).exportStl(str(path), tolerance=5e-5, angularTolerance=0.1, ascii=True)
+    lines = path.read_text().splitlines()
+    lines[0], lines[-1] = "solid nozzle", "endsolid nozzle"
+    path.write_text("\n".join(lines) + "\n")
 
 
 def main():
@@ -75,6 +88,7 @@ def main():
     for faces, name in ((inlet, "inlet"), (outlet, "outlet"), (wall, "wall"), (nozzle_faces, "nozzle")):
         export_patch(faces, name)
         print(f"{name:7s}: {len(faces)} faces")
+    export_cfd_nozzle()
     print(f"fluid volume: {fluid.val().Volume() * 1e-9:.4f} m3")
 
 
