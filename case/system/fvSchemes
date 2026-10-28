@@ -31,9 +31,9 @@ gradSchemes
 divSchemes
 {
     default         none;
-    div(phi,U)      bounded Gauss linearUpwindV limited;
-    div(phi,h)      bounded Gauss linearUpwind limited;
-    div(phi,K)      bounded Gauss linearUpwind limited;
+    div(phi,U)      bounded Gauss upwind;   // 1st order for robustness; linearUpwindV limited once stable
+    div(phi,h)      bounded Gauss upwind;
+    div(phi,K)      bounded Gauss upwind;
     div(phid,p)     Gauss upwind;
     div(phi,k)      bounded Gauss upwind;
     div(phi,omega)  bounded Gauss upwind;
@@ -42,7 +42,7 @@ divSchemes
 
 laplacianSchemes
 {
-    default         Gauss linear limited corrected 0.5;
+    default         Gauss linear limited corrected 0.33;
 }
 
 interpolationSchemes
@@ -52,7 +52,7 @@ interpolationSchemes
 
 snGradSchemes
 {
-    default         limited corrected 0.5;
+    default         limited corrected 0.33;
 }
 
 wallDist
