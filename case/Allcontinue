@@ -1,10 +1,16 @@
 #!/bin/sh
-# Continue the run from the latest saved iteration (no remeshing, fields kept).
-# Stop a running job first with:  foamDictionary system/controlDict -entry stopAt -set writeNow
+# Continue from the latest saved iteration (no remeshing, fields kept).
+# Optional argument: number of extra iterations, e.g.  ./Allcontinue 1000
 cd ${0%/*} || exit 1
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
+. ./bin.sh
 
-foamDictionary system/controlDict -entry stopAt -set endTime > /dev/null
+setControl stopAt endTime
+if [ -n "$1" ]
+then
+    latest=$(latestTime)
+    setControl endTime $(( ${latest:-0} + $1 ))
+fi
 
 ./plot                             # live convergence window
 

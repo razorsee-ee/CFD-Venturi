@@ -1,7 +1,8 @@
 #!/bin/sh
-# Stage 1: mesh + gas-only steady solution.
+# Stage 1: mesh + gas-only steady solution (stops by itself when converged).
 cd ${0%/*} || exit 1
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
+. ./bin.sh
 
 runApplication blockMesh
 runApplication surfaceFeatures
@@ -10,6 +11,9 @@ runApplication checkMesh
 
 rm -rf 0 && cp -r 0.orig 0
 rm -f constant/fvModels            # gas only
+setControl endTime 2000
+setControl stopAt endTime
+residualControl on
 
 ./plot                             # live convergence window
 

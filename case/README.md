@@ -25,10 +25,13 @@ python ../mesh/make_blockmesh.py 0.65
 
 Окно с графиками открывается само (`./plot`). Картинка дублируется в `convergence.png`.
 
+Скрипты меняют в `system/` только отдельные значения: `endTime`, `stopAt`, `residualControl`. После `./Allclean` файлы снова совпадают с версией в git, так что `git pull` не конфликтует.
+
 | Действие | Команда |
 |---|---|
-| Остановить с записью | `foamDictionary system/controlDict -entry stopAt -set writeNow` |
+| Остановить с записью (из второго окна терминала) | `./stop` |
 | Продолжить остановленный расчёт | `./Allcontinue` |
+| Продолжить и досчитать ещё N итераций | `./Allcontinue 1000` |
 | Очистить всё, кроме настроек | `./Allclean` |
 | Собрать результат для ParaView | `reconstructPar -latestTime`, затем `paraFoam -builtin` |
 
