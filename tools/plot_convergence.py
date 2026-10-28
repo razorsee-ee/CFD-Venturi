@@ -17,7 +17,11 @@ def read_dat(name, case):
     """Read postProcessing/<name>/<time>/*.dat from all restart folders -> (columns, rows)."""
     root = case / "postProcessing" / name
     if not root.is_dir():
-        return [], []
+        # #includeFunc without name= writes to e.g. "residuals(p,U,h,k,omega)"
+        alt = sorted((case / "postProcessing").glob(name + "(*")) if (case / "postProcessing").is_dir() else []
+        if not alt:
+            return [], []
+        root = alt[0]
     dirs = sorted((d for d in root.iterdir() if d.is_dir()), key=lambda d: float(d.name))
     cols, rows = [], []
     for d in dirs:

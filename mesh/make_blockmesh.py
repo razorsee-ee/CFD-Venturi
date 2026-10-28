@@ -107,7 +107,7 @@ def main():
         out.append(f"    hex ({' '.join(map(str, vs))}) ({n1} {n2} {n3}) simpleGrading ({g1:g} {g2:g} {g3:.5g})")
         ncells += n1 * n2 * n3
     out += [");\n", "boundary\n("]
-    for name, typ, faces in (("inlet", "patch", inlet), ("outlet", "patch", outlet), ("wall", "wall", wall)):
+    for name, typ, faces in (("inlet", "patch", inlet), ("outlet", "patch", outlet), ("walls", "wall", wall)):
         out += [f"    {name}\n    {{\n        type {typ};\n        faces\n        ("]
         out += [f"            ({' '.join(map(str, q))})" for q in faces]
         out += ["        );\n    }"]

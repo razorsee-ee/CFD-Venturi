@@ -54,7 +54,7 @@ cygpath -w $PWD
 
 1. Выбери в Pipeline Browser `case.foam`. В Properties проверь:
    - **Case Type.** `Reconstructed Case`, если выполнялся `reconstructPar`. `Decomposed Case`, если расчёт шёл на 8 ядрах и сборки ещё не было. Если сомневаешься, выбирай Decomposed: она работает, пока есть папки `processor*`.
-   - **Mesh Regions.** Оставь `internalMesh` (объём). Для стенок и форсунки отметь `patch/wall`, `patch/nozzle`.
+   - **Mesh Regions.** Оставь `internalMesh` (объём). Для стенок и форсунки отметь `patch/walls`, `patch/nozzle`.
    - **Cell Arrays.** Отметь `U`, `p`, `T` (можно все).
 2. **Apply.**
 3. Нажми **⏭ Last Frame** — покажется последний сохранённый результат.

@@ -32,7 +32,7 @@ boundaryField
         inletValue      $internalField;
         value           $internalField;
     }
-    "(wall|nozzle)"
+    "(walls|nozzle)"
     {
         type            kqRWallFunction;
         value           $internalField;

@@ -29,7 +29,7 @@ boundaryField
         type            fixedValue;
         value           $internalField;
     }
-    "(wall|nozzle)"
+    "(walls|nozzle)"
     {
         type            zeroGradient;
     }

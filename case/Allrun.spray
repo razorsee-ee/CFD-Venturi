@@ -4,7 +4,18 @@ cd ${0%/*} || exit 1
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
 
 cp constant/fvModels.spray constant/fvModels
-foamDictionary system/controlDict -entry endTime -set 5000
+
+# 1500 more iterations from the last saved gas solution
+if [ "$(getNumberOfProcessors)" -gt 1 ]
+then
+    latest=$(foamListTimes -processor -latestTime 2>/dev/null | tail -1)
+else
+    latest=$(foamListTimes -latestTime 2>/dev/null | tail -1)
+fi
+endTime=$(( ${latest:-0} + 1500 ))
+foamDictionary system/controlDict -entry endTime -set $endTime > /dev/null
+foamDictionary system/controlDict -entry stopAt -set endTime > /dev/null
+echo "Spray run: from iteration ${latest:-0} to $endTime"
 
 ./plot                             # live convergence window
 

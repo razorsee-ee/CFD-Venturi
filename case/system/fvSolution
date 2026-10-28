@@ -52,7 +52,7 @@ relaxationFactors
     fields
     {
         p               0.3;
-        rho             1;
+        rho             0.05;   // essential: with 1 the steady compressible p-rho coupling diverges
     }
     equations
     {

@@ -110,7 +110,7 @@ subModels
 
     dispersionModel stochasticDispersionRAS;
 
-    patchInteractionModel standardWallInteraction;
+    patchInteractionModel localInteraction;
 
     heatTransferModel RanzMarshall;
 
@@ -120,14 +120,36 @@ subModels
 
     radiation       off;
 
-    standardWallInteractionCoeffs
+    // Every patch removes the droplet; the log then reports, per patch, how
+    // much oil left through the outlet and how much deposited on the shell
+    // ("walls") or on the lance/disk ("nozzle"). Wall film is not modelled.
+    localInteractionCoeffs
     {
-        type            stick;      // oil hitting the shell or the lance stays there
+        patches
+        (
+            "(inlet|outlet|walls|nozzle)"
+            {
+                type    escape;
+            }
+        );
     }
 
     RanzMarshallCoeffs
     {
         BirdCorrection  false;
+    }
+
+    compositionModel singlePhaseMixture;
+
+    singlePhaseMixtureCoeffs
+    {
+        phases
+        (
+            solid
+            {
+                oil     1;
+            }
+        );
     }
 }
 
@@ -137,7 +159,7 @@ cloudFunctions
     {
         type            patchPostProcessing;
         maxStoredParcels 20000;
-        patches         (outlet);
+        patches         (outlet walls nozzle);
     }
 
     tracks
