@@ -147,20 +147,20 @@ def main():
     fig = plt.figure(figsize=(13, 8))
     if args.watch:
         try:
-            plt.ion()
-            plt.show(block=False)
-            while plt.fignum_exists(fig.number):
+            fig.canvas.manager.set_window_title(f"Сходимость: {case.resolve().name}")
+        except Exception:
+            pass
+        plt.ion()
+        plt.show(block=False)
+        while plt.fignum_exists(fig.number):
+            try:
                 draw(fig, case)
                 fig.savefig(case / "convergence.png", dpi=100)
-                plt.pause(args.watch)
-        except Exception as e:  # no GUI backend: keep refreshing the PNG only
-            print(f"no plot window ({e}); updating {case / 'convergence.png'} every {args.watch:g} s")
-            plt.switch_backend("Agg")
-            fig = plt.figure(figsize=(13, 8))
-            while True:
-                draw(fig, case)
-                fig.savefig(case / "convergence.png", dpi=100)
-                time.sleep(args.watch)
+                fig.canvas.draw_idle()
+                fig.canvas.flush_events()
+            except Exception as e:  # e.g. a .dat file being written right now: try again next time
+                print(f"{time.strftime('%H:%M:%S')} skipped one refresh: {e!r}", flush=True)
+            plt.pause(args.watch)
     else:
         draw(fig, case)
         fig.savefig(case / "convergence.png", dpi=100)
