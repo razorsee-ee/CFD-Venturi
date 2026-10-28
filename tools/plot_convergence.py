@@ -58,6 +58,16 @@ def column(cols, rows, key):
     return xs, ys
 
 
+def smooth(a, xs, ys, color, n=100):
+    """Thin raw curve plus a running mean over n iterations (spray results are noisy)."""
+    a.plot(xs, ys, color=color, lw=0.6, alpha=0.45)
+    if len(ys) > n:
+        mean = [sum(ys[max(0, i - n + 1):i + 1]) / len(ys[max(0, i - n + 1):i + 1]) for i in range(len(ys))]
+        a.plot(xs, mean, color=color, lw=2, label=f"среднее за {n} итераций")
+        return mean[-1]
+    return ys[-1]
+
+
 def zoom(a, ys):
     """Set y limits from the last 90 % of the data, so start-up spikes do not flatten the curve."""
     tail = [y for y in ys[len(ys) // 10:] if not math.isnan(y)]
@@ -92,9 +102,9 @@ def draw(fig, case):
     po_map = dict(zip(xo, po))
     dp = [(x, p - po_map[x]) for x, p in zip(xi, pi) if x in po_map]
     if dp:
-        a.plot([d[0] for d in dp], [d[1] / 1000 for d in dp], color="#1c7ed6")
+        last = smooth(a, [d[0] for d in dp], [d[1] / 1000 for d in dp], "#1c7ed6")
         zoom(a, [d[1] / 1000 for d in dp])
-        a.set_title(f"Перепад давления вход-выход: {dp[-1][1] / 1000:.2f} кПа")
+        a.set_title(f"Перепад давления вход-выход: {last:.2f} кПа")
     else:
         a.set_title("Перепад давления (нет данных)")
     a.set_xlabel("итерация"); a.set_ylabel("кПа"); a.grid(True, alpha=0.3)
@@ -102,9 +112,9 @@ def draw(fig, case):
     a = ax[1][0]
     xt, tout = column(co, ro, "(T)")
     if tout:
-        a.plot(xt, [t - 273.15 for t in tout], color="#e8590c")
+        last = smooth(a, xt, [t - 273.15 for t in tout], "#e8590c")
         zoom(a, [t - 273.15 for t in tout])
-        a.set_title(f"Средняя T на выходе: {tout[-1] - 273.15:.1f} °C")
+        a.set_title(f"Средняя T на выходе: {last:.1f} °C")
     else:
         a.set_title("T на выходе (нет данных)")
     a.set_xlabel("итерация"); a.set_ylabel("°C"); a.grid(True, alpha=0.3)
@@ -113,7 +123,7 @@ def draw(fig, case):
     cm, rm = read_dat("outletMassFlow", case)
     xm, mf = column(cm, rm, "(phi)")
     if mf:
-        a.plot(xm, [abs(m) for m in mf], color="#2f9e44")
+        smooth(a, xm, [abs(m) for m in mf], "#2f9e44")
         zoom(a, [abs(m) for m in mf] + [21.11])
         a.axhline(21.11, color="gray", ls="--", lw=1, label="вход 21.11 кг/с")
         a.set_title(f"Расход газа на выходе: {abs(mf[-1]):.2f} кг/с")
