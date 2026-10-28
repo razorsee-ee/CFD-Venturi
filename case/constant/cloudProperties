@@ -33,8 +33,8 @@ solution
         resetOnStartup  false;
         schemes
         {
-            U               semiImplicit 1;
-            h               semiImplicit 1;
+            U               semiImplicit 0.5;   // relaxed: the spray is dense near the disk
+            h               semiImplicit 0.5;
             radiation       semiImplicit 1;
         }
     }
@@ -78,18 +78,21 @@ subModels
     {
         deflectorDisk
         {
-            // Oil sheet leaving the rim of the D65 deflector disk:
-            // ring of injection points just downstream of the disk face
+            // The oil leaves the rim of the D65 deflector disk as a ~2 mm thick
+            // sheet (9.7 l/s at 25 m/s) that breaks into droplets further out.
+            // Droplets are born on a ring r = 50...150 mm just downstream of
+            // the disk: injecting all 8.9 kg/s into the tiny cells at the rim
+            // made the coupled gas solution blow up locally (U > 3000 m/s).
             type            coneInjection;
             massFlowRate    8.889;          // kg/s = 32 t/h
             parcelsPerSecond 4000;          // parcels per cloud evaluation (steady)
             uniformParcelSize volume;
 
-            position        (2.417 0 0);
+            position        (2.424 0 0);
             direction       (1 0 0);
             injectionMethod disc;
-            dInner          0.060;
-            dOuter          0.066;
+            dInner          0.100;
+            dOuter          0.300;
             thetaInner      65;             // deg from the axis: near-radial sheet
             thetaOuter      85;
 
@@ -155,6 +158,14 @@ subModels
 
 cloudFunctions
 {
+    // Oil mass hitting each wall face; in the steady cloud the field
+    // cloud:massCollisionDensity on the walls is the deposition flux, kg/(m2 s)
+    deposition
+    {
+        type            patchCollisionDensity;
+        minSpeed        0;
+    }
+
     outletParcels
     {
         type            patchPostProcessing;

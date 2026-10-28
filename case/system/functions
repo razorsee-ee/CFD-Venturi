@@ -20,6 +20,7 @@ FoamFile
 #includeFunc patchAverage(patch=outlet, fields=(p T), name=outletAverage)
 #includeFunc patchFlowRate(patch=outlet, name=outletMassFlow)
 
+#includeFunc wallShearStress(executeControl=writeTime)
 #includeFunc yPlus(executeControl=writeTime)
 #includeFunc MachNo(executeControl=writeTime)
 

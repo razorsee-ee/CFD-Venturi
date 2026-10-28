@@ -1,0 +1,20 @@
+#!/bin/sh
+# Prepare the inputs and run the droplet deposition / film temperature analysis.
+# Run after ./Allrun.spray (or after ./stop during the spray stage).
+cd ${0%/*} || exit 1
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+if [ -d processor0 ]
+then
+    runParallel -o -s cellCentres foamPostProcess -func writeCellCentres -latestTime
+    runApplication -o -s deposition reconstructPar -latestTime
+else
+    runApplication -o -s cellCentres foamPostProcess -func writeCellCentres -latestTime
+fi
+
+rm -rf VTK/walls
+runApplication -o -s deposition foamToVTK -latestTime -ascii -noInternal -noPointValues \
+    -noFaceZones -excludePatches '(inlet outlet)' -fields '(T wallShearStress)'
+
+PY=$(command -v python3 || command -v python)
+"$PY" ../tools/deposition_analysis.py . "$@"
