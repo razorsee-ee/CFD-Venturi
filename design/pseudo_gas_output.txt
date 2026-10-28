@@ -1,0 +1,21 @@
+component         t/h surrogate      M  w,mass   x,mol
+N2                2.4        N2   28.0   0.032   0.076
+CO2               1.2       CO2   44.0   0.016   0.024
+light HC          8.4      C2H6   30.1   0.111   0.248
+water vapour      9.0       H2O   18.0   0.118   0.444
+gasoline          6.0     C7H16  100.2   0.079   0.053
+mazut            33.0    C18H38  254.5   0.434   0.115
+heavy oil        16.0    C25H52  352.7   0.211   0.040
+total            76.0             67.4
+
+pseudo-gas: M = 67.4 kg/kmol, cp = 2835 J/(kg K), gamma = 1.045
+            mu = 1.82e-05 Pa s, k = 0.050 W/(m K), Pr = 1.04
+at 470 C, 101.3 kPa: rho = 1.106 kg/m3, mdot = 21.11 kg/s, Q = 19.09 m3/s (68723 m3/h)
+velocity: inlet 31.1 m/s, throat 77.5 m/s, Mach throat 0.25
+Re throat = 2.64e+06
+
+oil: 8.89 kg/s, 9.7 l/s; L/G = 0.51 l/m3, mass ratio 0.42
+orifice d = 20 mm: jet 30.8 m/s, dp_nozzle ~ 6.8 bar
+adiabatic mixing, no phase change: T = 382 C (upper bound of cooling)
+pressure drop estimate: ~3.8 kPa (dyn. head throat 3.3 kPa, liquid acceleration 2.8 kPa)
+Nukiyama-Tanasawa d32 ~ 92 um (rough estimate for the droplet size distribution)
