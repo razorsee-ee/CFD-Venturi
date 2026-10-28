@@ -155,7 +155,8 @@ def main():
 
     # ---- bins on the unrolled wall: x along the axis, theta from the top (lance side)
     x_end = geo.X_END + L_EXT
-    xb = np.arange(0, x_end + DX, DX)
+    # 100 mm bins in the apparatus, 250 mm on the coarse outlet extension
+    xb = np.r_[np.arange(0, geo.X_END, DX), np.arange(geo.X_END, x_end + 250.0, 250.0)]
     tb = np.linspace(-180, 180, NTHETA + 1)
     nx, nt = len(xb) - 1, NTHETA
 
@@ -301,14 +302,15 @@ def plot(case, xb, tb, mflux, Tf, wet, ok, hits, nS, xc, area, summary):
     w = hits.get("walls")
     if w is not None:
         share = (mflux * area).sum(1) * 100 / max((mflux * area).sum(), 1e-12)
-        a.bar(xc[sel], share[sel], width=xb[1] - xb[0], color="#1c7ed6")
+        width = (xb[1:] - xb[:-1])[sel]
+        a.bar(xc[sel], share[sel] * DX / width, width=width, color="#1c7ed6")
         a2 = a.twinx()
         r = [geo.wall_radius(min(x, geo.X_END)) for x in xc[sel]]
         a2.plot(xc[sel], r, color="gray", lw=1)
         a2.set_ylabel("радиус стенки, мм", color="gray")
         a2.set_ylim(0, max(r) * 1.1)
     a.set_xlabel("x вдоль оси, мм")
-    a.set_ylabel("% масла на стенке")
+    a.set_ylabel("% масла на стенке на 100 мм длины")
     a.set_title("Доля осевшего масла вдоль оси")
 
     a = fig.add_subplot(gs[2, 1])
