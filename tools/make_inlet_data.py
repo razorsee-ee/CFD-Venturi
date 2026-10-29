@@ -2,8 +2,9 @@
 
 Input : a 'foam'-format cut plane written by the cutPlaneSurface function
         (faceCentres, vectorField/U, scalarField/{T,k,omega})
-Output: <case>/constant/boundaryData/inlet/points and .../0/{U,T,k,omega},
-        read by the timeVaryingMappedFixedValue inlet of case-throat.
+Output: <case>/constant/inletProfile/points and .../0/{U,T,k,omega}. Allrun copies
+        it to constant/boundaryData/inlet (read by timeVaryingMappedFixedValue)
+        and scales U to the exact mass flow (tools/scale_inlet_flow.py).
 
 Usage:  python make_inlet_data.py <cutPlane dir> <case dir>
 """
@@ -20,7 +21,7 @@ import params as geo  # noqa: E402
 N_RING = 128   # extra points on the wall circle: U = 0 there, so the boundary layer is not smeared to the wall
 
 src, case = Path(sys.argv[1]), Path(sys.argv[2])
-dst = case / "constant" / "boundaryData" / "inlet"
+dst = case / "constant" / "inletProfile"
 (dst / "0").mkdir(parents=True, exist_ok=True)
 
 
