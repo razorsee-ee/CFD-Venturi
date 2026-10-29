@@ -94,11 +94,14 @@ def read_post(path):
     if len(lines) < 2:
         return None
     names = lines[0].lstrip("#").replace("(", " ").replace(")", " ").split()
+    col = {n: k for k, n in enumerate(names)}
+    need = max(col[n] for n in ("currentProc", "celli", "nParticle", "d", "rho", "T"))
+    # sprayCloud writes more columns than its header lists (after nPhases):
+    # the ones needed here come first, so only require those
     rows = [ln.replace("(", " ").replace(")", " ").split() for ln in lines[1:] if ln.strip()]
-    rows = [r for r in rows if len(r) == len(names)]
+    rows = [r for r in rows if len(r) > need]
     if not rows:
         return None
-    col = {n: k for k, n in enumerate(names)}
 
     def get(n, typ=float):
         return np.array([typ(r[col[n]]) for r in rows])
