@@ -30,7 +30,7 @@ deltaT          1;
 
 writeControl    timeStep;
 
-writeInterval   250;
+writeInterval   100;        // gas stage ends at 600: must be a multiple
 
 purgeWrite      2;
 
