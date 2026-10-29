@@ -12,6 +12,11 @@ else
     runApplication -o -s cellCentres foamPostProcess -func writeCellCentres -latestTime
 fi
 
+# copy of the deposition field with a name ParaView on Windows can read
+# (':' is not allowed in Windows file names, so cloud:* fields are invisible there)
+runApplication -o -s oilDeposition foamPostProcess -latestTime \
+    -func "scale(cloud:massCollisionDensity, scale=1, result=oilDeposition)"
+
 rm -rf VTK/walls
 runApplication -o -s deposition foamToVTK -latestTime -ascii -noInternal -noPointValues \
     -noFaceZones -excludePatches '(inlet outlet)' -fields '(T wallShearStress)'
