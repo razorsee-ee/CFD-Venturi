@@ -27,6 +27,13 @@ from pathlib import Path
 
 import numpy as np
 
+# Windows consoles/files default to cp1252: the reports contain Cyrillic and m²
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "geometry"))
 import params as geo  # noqa: E402
@@ -51,7 +58,7 @@ def wall_radius(x_mm):
 def read_domain(case):
     path = case / "system" / "blockMeshDict"
     if path.exists():
-        m = re.search(r"domain \(mm\): x0 = ([\d.]+), wall_end = ([\d.]+), x_end = ([\d.]+)", path.read_text())
+        m = re.search(r"domain \(mm\): x0 = ([\d.]+), wall_end = ([\d.]+), x_end = ([\d.]+)", path.read_text(encoding="utf-8", errors="ignore"))
         if m:
             DOMAIN.update(x0=float(m.group(1)), wall_end=float(m.group(2)), x_end=float(m.group(3)))
 
@@ -83,7 +90,7 @@ def load_centres(case):
 
 def read_post(path):
     """Impact records of one .post file -> dict of arrays."""
-    lines = path.read_text().splitlines()
+    lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
     if len(lines) < 2:
         return None
     names = lines[0].lstrip("#").replace("(", " ").replace(")", " ").split()
@@ -105,7 +112,7 @@ def read_post(path):
 
 def read_vtk_walls(path):
     """Face centres, areas and cell data (T, wallShearStress) of a legacy ascii VTK patch."""
-    tok = path.read_text().split()
+    tok = path.read_text(encoding="utf-8", errors="ignore").split()
     i = tok.index("POINTS")
     n = int(tok[i + 1])
     P = np.array(tok[i + 3:i + 3 + 3 * n], float).reshape(n, 3)
@@ -248,9 +255,9 @@ def main():
         p(f"Теплоотдача газ→стенка (по аналогии Кольборна): {np.nanmin(hcoef[ok]):.0f}…{np.nanmax(hcoef[ok]):.0f} Вт/(м²·К)")
     summary = "\n".join(out)
     print(summary)
-    (case / f"deposition{tag}_summary.txt").write_text(summary + "\n")
+    (case / f"deposition{tag}_summary.txt").write_text(summary + "\n", encoding="utf-8")
 
-    with open(case / f"deposition{tag}_bins.csv", "w") as f:
+    with open(case / f"deposition{tag}_bins.csv", "w", encoding="utf-8") as f:
         f.write("x_mm,theta_deg,area_m2,oil_flux_kg_m2s,T_impact_C,T_gas_C,h_W_m2K,T_film_C\n")
         for i in range(nx):
             for j in range(nt):

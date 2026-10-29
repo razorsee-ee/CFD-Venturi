@@ -18,6 +18,13 @@ from pathlib import Path
 
 import numpy as np
 
+# Windows consoles/files default to cp1252: the reports contain Cyrillic and m²
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "geometry"))
 import params as geo  # noqa: E402
 
@@ -30,7 +37,7 @@ dst = case / "constant" / "inletProfile"
 
 def body(path):
     """Text of an OpenFOAM list file without any header before the size line."""
-    txt = path.read_text()
+    txt = path.read_text(encoding="utf-8", errors="ignore")
     m = re.search(r"^\s*(\d+)\s*\n\s*\(", txt, re.M)
     return txt[m.start():]
 
@@ -46,7 +53,7 @@ near = [int(np.argmin((pts[:, 1] - p[1])**2 + (pts[:, 2] - p[2])**2)) for p in r
 
 
 def write(path, header, rows):
-    path.write_text(f"// {header}\n{len(rows)}\n(\n" + "\n".join(rows) + "\n)\n")
+    path.write_text(f"// {header}\n{len(rows)}\n(\n" + "\n".join(rows) + "\n)\n", encoding="utf-8")
 
 
 write(dst / "points", "cut-plane face centres + wall ring, from tools/make_inlet_data.py",
@@ -71,7 +78,7 @@ rows.append(f"({R:.5g} 0)")
 (case / "constant" / "inletSwirl").write_text(
     "// tangential velocity W(r) [m/s] at the inlet plane, from tools/make_inlet_data.py\n"
     "tangentialVelocity\n{\n    type    function1;\n    value2  table\n    (\n        "
-    + "\n        ".join(rows) + "\n    );\n}\n")
+    + "\n        ".join(rows) + "\n    );\n}\n", encoding="utf-8")
 
 print(f"{len(pts)} points at x = {x0:.3f} m, radius up to {r.max():.3f} m, + {N_RING} wall points at r = {R:.3f} m")
 print(f"axial velocity {U[:, 0].mean():.1f} m/s (mean of faces), tangential velocity "
