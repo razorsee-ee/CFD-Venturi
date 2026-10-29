@@ -1,0 +1,7 @@
+#!/bin/sh
+# Ask the running solver to write the current iteration and stop (takes a few seconds).
+# Resume later with ./Allcontinue
+cd ${0%/*} || exit 1
+. ./bin.sh
+setControl stopAt writeNow
+echo "stop requested: the solver writes the current iteration and exits"

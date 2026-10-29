@@ -1,0 +1,186 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      cloudProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Heavy oil spray, 32 t/h at 100 C: rho 1150 kg/m3 at 100 C (1.2 kg/l cold),
+// 40 cSt at 100 C. Inert droplets: drag + heat exchange, no evaporation,
+// no condensation, no breakup (sizes from correlations, see design/droplet_size.py).
+
+type        thermoCloud;
+
+solution
+{
+    coupled         true;
+    transient       no;
+    calcFrequency   10;         // cloud is re-tracked every 10 gas iterations
+    maxTrackTime    1.0;        // s, > residence time in the scrubber
+    maxCo           0.3;
+    cellValueSourceCorrection off;
+
+    sourceTerms
+    {
+        resetOnStartup  false;
+        schemes
+        {
+            U               semiImplicit 0.5;   // relaxed: the spray is dense near the disk
+            h               semiImplicit 0.5;
+            radiation       semiImplicit 1;
+        }
+    }
+
+    interpolationSchemes
+    {
+        rho             cell;
+        U               cellPoint;
+        mu              cell;
+        T               cell;
+        Cp              cell;
+        kappa           cell;
+        p               cell;
+    }
+
+    integrationSchemes
+    {
+        U               Euler;
+        T               analytical;
+    }
+}
+
+constantProperties
+{
+    rho0            1150;       // heavy oil at 100 C
+    T0              373.15;
+    Cp0             1950;
+    epsilon0        1;
+    f0              0.5;
+}
+
+subModels
+{
+    particleForces
+    {
+        sphereDrag;
+        gravity;
+    }
+
+    injectionModels
+    {
+        deflectorDisk
+        {
+            // The oil leaves the rim of the D65 deflector disk as a ~1.5 mm thick
+            // sheet (7.7 l/s at 25 m/s) that breaks into droplets further out.
+            // Droplets are born on a ring r = 50...150 mm just downstream of
+            // the disk: injecting all 8.9 kg/s into the tiny cells at the rim
+            // made the coupled gas solution blow up locally (U > 3000 m/s).
+            type            coneInjection;
+            massFlowRate    8.889;          // kg/s = 32 t/h
+            parcelsPerSecond 4000;          // parcels per cloud evaluation (steady)
+            uniformParcelSize volume;
+
+            position        (2.424 0 0);
+            direction       (1 0 0);
+            injectionMethod disc;
+            dInner          0.100;
+            dOuter          0.300;
+            thetaInner      65;             // deg from the axis: near-radial sheet
+            thetaOuter      85;
+
+            flowType        constantVelocity;
+            Umag            25;             // m/s, jet from a ~20 mm orifice minus losses
+
+            sizeDistribution
+            {
+                type        RosinRammler;
+                Q           3;
+                min         10e-6;
+                max         400e-6;
+                d           130e-6;         // d32 ~ 88 um (Nukiyama-Tanasawa, 40 cSt)
+                n           2.5;
+            }
+        }
+    }
+
+    dispersionModel stochasticDispersionRAS;
+
+    patchInteractionModel localInteraction;
+
+    heatTransferModel RanzMarshall;
+
+    stochasticCollisionModel none;
+
+    surfaceFilmModel none;
+
+    radiation       off;
+
+    // Every patch removes the droplet; the log then reports, per patch, how
+    // much oil left through the outlet and how much deposited on the shell
+    // ("walls") or on the lance/disk ("nozzle"). Wall film is not modelled.
+    localInteractionCoeffs
+    {
+        patches
+        (
+            "(inlet|outlet|walls|nozzle)"
+            {
+                type    escape;
+            }
+        );
+    }
+
+    RanzMarshallCoeffs
+    {
+        BirdCorrection  false;
+    }
+
+    compositionModel singlePhaseMixture;
+
+    singlePhaseMixtureCoeffs
+    {
+        phases
+        (
+            solid
+            {
+                oil     1;
+            }
+        );
+    }
+}
+
+cloudFunctions
+{
+    // Oil mass hitting each wall face; in the steady cloud the field
+    // cloud:massCollisionDensity on the walls is the deposition flux, kg/(m2 s)
+    deposition
+    {
+        type            patchCollisionDensity;
+        minSpeed        0;
+    }
+
+    outletParcels
+    {
+        type            patchPostProcessing;
+        maxStoredParcels 20000;
+        patches         (outlet walls nozzle);
+    }
+
+    tracks
+    {
+        type            particleTracks;
+        trackInterval   5;
+        maxSamples      200000;
+        resetOnWrite    yes;
+    }
+}
+
+// ************************************************************************* //

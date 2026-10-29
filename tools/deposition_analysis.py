@@ -34,7 +34,9 @@ import params as geo  # noqa: E402
 CP_OIL = 2100.0          # J/(kg K), as constantProperties in cloudProperties
 CP_GAS, PR_GAS = 2835.0, 1.04
 MDOT_GAS, RHO_GAS = 21.11, 1.106
-L_EXT = 2000.0           # outlet extension in mesh/make_blockmesh.py, mm
+# domain of the mesh (mm), read from system/blockMeshDict (see mesh/make_blockmesh.py);
+# defaults are the full scrubber with its 2 m outlet extension
+DOMAIN = {"x0": 0.0, "wall_end": geo.X_END, "x_end": geo.X_END + 2000.0}
 DX, NTHETA = 100.0, 24   # bin size: 100 mm along the axis (> axial cell size), 15 deg around
 
 # film temperature bands for heavy oil (rough guide; real limits depend on the
@@ -43,7 +45,15 @@ BANDS = [(300.0, "низкий"), (380.0, "умеренный"), (1e9, "высо
 
 
 def wall_radius(x_mm):
-    return geo.wall_radius(min(x_mm, geo.X_END))
+    return geo.wall_radius(min(x_mm, DOMAIN["wall_end"]))
+
+
+def read_domain(case):
+    path = case / "system" / "blockMeshDict"
+    if path.exists():
+        m = re.search(r"domain \(mm\): x0 = ([\d.]+), wall_end = ([\d.]+), x_end = ([\d.]+)", path.read_text())
+        if m:
+            DOMAIN.update(x0=float(m.group(1)), wall_end=float(m.group(2)), x_end=float(m.group(3)))
 
 
 # ---------------------------------------------------------------- readers
@@ -129,6 +139,7 @@ def main():
                     help="use the last N written cloud evaluations (skip the start-up)")
     args = ap.parse_args()
     case = Path(args.case)
+    read_domain(case)
 
     post_root = case / "postProcessing" / "lagrangian" / "cloud" / "outletParcels"
     times = sorted((d for d in post_root.glob("*") if d.is_dir()), key=lambda d: float(d.name))
@@ -154,9 +165,9 @@ def main():
     Cw = Cw * 1e3
 
     # ---- bins on the unrolled wall: x along the axis, theta from the top (lance side)
-    x_end = geo.X_END + L_EXT
+    x0d, x_wall, x_end = DOMAIN["x0"], DOMAIN["wall_end"], DOMAIN["x_end"]
     # 100 mm bins in the apparatus, 250 mm on the coarse outlet extension
-    xb = np.r_[np.arange(0, geo.X_END, DX), np.arange(geo.X_END, x_end + 250.0, 250.0)]
+    xb = np.r_[np.arange(x0d, x_wall, DX), np.arange(x_wall, x_end + 250.0, 250.0)]
     tb = np.linspace(-180, 180, NTHETA + 1)
     nx, nt = len(xb) - 1, NTHETA
 
@@ -223,15 +234,15 @@ def main():
             p(f"  T плёнки {lo:3.0f}–{hi if hi < 1e8 else 999:3.0f} °C (риск {name:9s}): "
               f"{area[sel].sum():5.2f} м², {100 * (mflux[sel] * area[sel]).sum() / max((mflux[wet] * area[wet]).sum(), 1e-12):5.1f} % масла")
             lo = hi
-        real = xc <= geo.X_END
+        real = xc <= x_wall
         m_all = (mflux * area).sum()
-        p(f"  из осевшего на обечайку: в аппарате (до конца диффузора) "
+        p(f"  из осевшего на обечайку: на реальной стенке аппарата "
           f"{100 * (mflux[real] * area[real]).sum() / max(m_all, 1e-12):.0f} %, "
-          f"на расчётном удлинении за диффузором {100 * (mflux[~real] * area[~real]).sum() / max(m_all, 1e-12):.0f} % "
-          f"(в реальности это следующий аппарат/газоход)")
+          f"на расчётном удлинении {100 * (mflux[~real] * area[~real]).sum() / max(m_all, 1e-12):.0f} % "
+          f"(стенка там условная: прямая труба вместо продолжения аппарата)")
         xs = [x for x in xc[wet.any(1)]]
         p(f"Масло попадает на стенку на участке x = {min(xs):.0f}…{max(xs):.0f} мм "
-          f"(конфузор {geo.X_CONV:.0f}…{geo.X_THROAT:.0f}, горловина до {geo.X_DIFF:.0f})")
+          f"(конфузор {geo.X_CONV:.0f}…{geo.X_THROAT:.0f}, горловина до {geo.X_DIFF:.0f}, область {x0d:.0f}…{x_end:.0f})")
         p(f"Теплоотдача газ→стенка (по аналогии Кольборна): {np.nanmin(hcoef[ok]):.0f}…{np.nanmax(hcoef[ok]):.0f} Вт/(м²·К)")
     summary = "\n".join(out)
     print(summary)
@@ -256,7 +267,7 @@ def plot(case, xb, tb, mflux, Tf, wet, ok, hits, nS, xc, area, summary):
     from matplotlib.colors import LogNorm, ListedColormap, BoundaryNorm
 
     # show only where something happens: from 300 mm before the nozzle to the end of the throat region
-    x0 = max(0.0, geo.X_STEM - 300)
+    x0 = max(DOMAIN["x0"], geo.X_STEM - 300)
     xs_wet = xc[wet.any(1)]
     x1 = max(geo.X_DIFF + 300, (xs_wet.max() + 100) if len(xs_wet) else 0)
     sel = (xb[:-1] >= x0) & (xb[1:] <= x1)
@@ -265,7 +276,8 @@ def plot(case, xb, tb, mflux, Tf, wet, ok, hits, nS, xc, area, summary):
     fig = plt.figure(figsize=(15, 10.5))
     gs = fig.add_gridspec(3, 2, height_ratios=[1, 1, 0.9])
     marks = [(geo.X_DISK_FRONT, "диск"), (geo.X_THROAT, "горловина"), (geo.X_DIFF, "диффузор"),
-             (geo.X_END, "конец диффузора")]
+             (geo.X_END, "конец диффузора"), (DOMAIN["wall_end"], "начало удлинения")]
+    marks = [m for m in marks if DOMAIN["x0"] < m[0] <= DOMAIN["x_end"]]
 
     def deco(a):
         for x, name in marks:
@@ -305,7 +317,7 @@ def plot(case, xb, tb, mflux, Tf, wet, ok, hits, nS, xc, area, summary):
         width = (xb[1:] - xb[:-1])[sel]
         a.bar(xc[sel], share[sel] * DX / width, width=width, color="#1c7ed6")
         a2 = a.twinx()
-        r = [geo.wall_radius(min(x, geo.X_END)) for x in xc[sel]]
+        r = [wall_radius(x) for x in xc[sel]]
         a2.plot(xc[sel], r, color="gray", lw=1)
         a2.set_ylabel("радиус стенки, мм", color="gray")
         a2.set_ylim(0, max(r) * 1.1)

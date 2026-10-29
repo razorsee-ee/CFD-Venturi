@@ -1,0 +1,17 @@
+#!/bin/sh
+# Open the live convergence window in the background (refresh every 20 s).
+# Also called by Allrun / Allrun.spray / Allcontinue.
+cd ${0%/*} || exit 1
+
+PY=$(command -v python3 || command -v python)
+[ -z "$PY" ] && { echo "plot: python not found, skipping convergence window"; exit 0; }
+
+if ! "$PY" -c "import matplotlib" > /dev/null 2>&1
+then
+    echo "plot: installing matplotlib (one time)..."
+    "$PY" -m pip install --user --quiet matplotlib || {
+        echo "plot: could not install matplotlib, run: $PY -m pip install matplotlib"; exit 0; }
+fi
+
+echo "plot: convergence window opens in a moment (also saved to convergence.png)"
+"$PY" ../tools/plot_convergence.py . --watch 20 > log.plot 2>&1 &

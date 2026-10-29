@@ -24,7 +24,7 @@ D_IN, D_THROAT = 0.884, 0.560
 
 OIL_TPH = 32.0          # spray: heavy oil
 T_OIL = 100 + 273.15
-OIL = dict(rho=920.0, cp=2100.0, mu=0.02, sigma=0.028)  # at 100 C, assumed (mu 20 mPa s ~ 22 cSt)
+OIL = dict(rho=1150.0, cp=1950.0, mu=0.046, sigma=0.030)  # at 100 C: 1.2 kg/l cold, 40 cSt
 D_ORIFICE = 0.020       # nozzle orifice, assumed
 
 

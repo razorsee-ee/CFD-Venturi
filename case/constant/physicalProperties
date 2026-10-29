@@ -44,7 +44,8 @@ mixture
     }
 }
 
-// Droplet material for the oil spray (constant properties, heavy oil at ~100 C).
+// Droplet material for the oil spray (constant properties, heavy oil at ~100 C,
+// keep rho/Cp equal to rho0/Cp0 in cloudProperties).
 // Declared as a "solid" because the droplets neither evaporate nor condense.
 liquids
 {}
@@ -56,8 +57,8 @@ solids
         defaultCoeffs   no;     // user-defined material, properties below
         oilCoeffs
         {
-            rho             920;
-            Cp              2100;
+            rho             1150;
+            Cp              1950;
             kappa           0.13;
             hf              0;
             emissivity      1;

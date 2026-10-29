@@ -14,8 +14,9 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// Heavy oil spray, 32 t/h at 100 C. Inert droplets: drag + heat exchange,
-// no evaporation, no condensation, no breakup.
+// Heavy oil spray, 32 t/h at 100 C: rho 1150 kg/m3 at 100 C (1.2 kg/l cold),
+// 40 cSt at 100 C. Inert droplets: drag + heat exchange, no evaporation,
+// no condensation, no breakup (sizes from correlations, see design/droplet_size.py).
 
 type        thermoCloud;
 
@@ -59,9 +60,9 @@ solution
 
 constantProperties
 {
-    rho0            920;        // heavy oil at 100 C
+    rho0            1150;       // heavy oil at 100 C
     T0              373.15;
-    Cp0             2100;
+    Cp0             1950;
     epsilon0        1;
     f0              0.5;
 }
@@ -78,8 +79,8 @@ subModels
     {
         deflectorDisk
         {
-            // The oil leaves the rim of the D65 deflector disk as a ~2 mm thick
-            // sheet (9.7 l/s at 25 m/s) that breaks into droplets further out.
+            // The oil leaves the rim of the D65 deflector disk as a ~1.5 mm thick
+            // sheet (7.7 l/s at 25 m/s) that breaks into droplets further out.
             // Droplets are born on a ring r = 50...150 mm just downstream of
             // the disk: injecting all 8.9 kg/s into the tiny cells at the rim
             // made the coupled gas solution blow up locally (U > 3000 m/s).
@@ -104,8 +105,8 @@ subModels
                 type        RosinRammler;
                 Q           3;
                 min         10e-6;
-                max         500e-6;
-                d           110e-6;         // d32 ~ 90 um (Nukiyama-Tanasawa)
+                max         400e-6;
+                d           130e-6;         // d32 ~ 88 um (Nukiyama-Tanasawa, 40 cSt)
                 n           2.5;
             }
         }

@@ -14,8 +14,8 @@ at 470 C, 101.3 kPa: rho = 1.106 kg/m3, mdot = 21.11 kg/s, Q = 19.09 m3/s (68723
 velocity: inlet 31.1 m/s, throat 77.5 m/s, Mach throat 0.25
 Re throat = 2.64e+06
 
-oil: 8.89 kg/s, 9.7 l/s; L/G = 0.51 l/m3, mass ratio 0.42
-orifice d = 20 mm: jet 30.8 m/s, dp_nozzle ~ 6.8 bar
-adiabatic mixing, no phase change: T = 382 C (upper bound of cooling)
+oil: 8.89 kg/s, 7.7 l/s; L/G = 0.40 l/m3, mass ratio 0.42
+orifice d = 20 mm: jet 24.6 m/s, dp_nozzle ~ 5.4 bar
+adiabatic mixing, no phase change: T = 387 C (upper bound of cooling)
 pressure drop estimate: ~3.8 kPa (dyn. head throat 3.3 kPa, liquid acceleration 2.8 kPa)
-Nukiyama-Tanasawa d32 ~ 92 um (rough estimate for the droplet size distribution)
+Nukiyama-Tanasawa d32 ~ 87 um (rough estimate for the droplet size distribution)
