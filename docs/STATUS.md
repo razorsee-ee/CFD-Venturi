@@ -81,7 +81,11 @@ CFD-кейс OpenFOAM-12 (Foundation) для скруббера Вентури: 
 - Размеры циклона и подвода — для варианта «колено + стояк» вместо заданной закрутки.
 
 ## Тестирование у себя (облачный контейнер)
-- OpenFOAM-12 собирался из исходников в `/opt/OpenFOAM-12`, окружение `source /opt/of12env.sh`.
+- Если в окружении открыт `dl.openfoam.org` и в setup script стоит установка `openfoam12`:
+  OpenFOAM в `/opt/openfoam12`, окружение `source /opt/openfoam12/etc/bashrc`.
+- Иначе собрать из исходников (git clone github.com/OpenFOAM/OpenFOAM-12 и ThirdParty-12, в etc/bashrc
+  `SCOTCH_TYPE=system`, `ParaView_TYPE=none`, apt: build-essential flex bison zlib1g-dev libopenmpi-dev
+  openmpi-bin libscotch-dev libptscotch-dev; `./Allwmake -j N -q`). В прошлой сессии: `/opt/OpenFOAM-12`, `source /opt/of12env.sh`.
 - Для mpirun от root: `OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1`.
 - В свежем контейнере сборку нужно повторить (~2–3 ч на 4 ядрах).
 - Не использовать `pkill -f` с шаблоном, который есть в собственной командной строке: убивает свою же команду.
