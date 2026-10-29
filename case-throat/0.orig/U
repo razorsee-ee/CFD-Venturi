@@ -20,14 +20,18 @@ internalField   uniform (30 0 0);
 
 boundaryField
 {
-    // Profile (swirl, turbulence) mapped from the full-scrubber gas solution
-    // at x = 1.75 m: constant/inletProfile (./mapInlet), copied to
-    // constant/boundaryData/inlet and scaled to 21.11 kg/s by Allrun
+    // Exact mass flow + swirl W(r) taken from the full-scrubber gas solution
+    // at x = 1.75 m (constant/inletSwirl, made by ./mapInlet). Axial velocity
+    // uniform. T, k, omega are mapped (timeVaryingMappedFixedValue).
     inlet
     {
-        type            timeVaryingMappedFixedValue;
-        offset          (0 0 0);
-        setAverage      off;
+        type            swirlFlowRateInletVelocity;
+        massFlowRate    constant 21.11;     // kg/s
+        rhoInlet        1.106;
+        origin          (0 0 0);
+        axis            (1 0 0);
+        radialVelocity  constant 0;
+        #include        "$FOAM_CASE/constant/inletSwirl"
     }
     outlet
     {

@@ -12,9 +12,9 @@ runApplication checkMesh
 rm -rf 0 && cp -r 0.orig 0
 rm -f constant/fvModels            # gas only
 
-# inlet profile mapped from the full case, scaled to the exact mass flow
-PY=$(command -v python3 || command -v python)
-"$PY" ../tools/scale_inlet_flow.py 21.11 | tee log.scaleInlet
+# T, k, omega at the inlet mapped from the full case (see ./mapInlet)
+rm -rf constant/boundaryData && mkdir -p constant/boundaryData
+cp -r constant/inletProfile constant/boundaryData/inlet
 setControl endTime 2000
 setControl stopAt endTime
 residualControl on
