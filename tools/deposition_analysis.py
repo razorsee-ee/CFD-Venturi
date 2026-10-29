@@ -138,7 +138,28 @@ def read_vtk_walls(path):
             if tok[j] == name and tok[j + 1] == str(nc) and tok[j + 2] == str(nf):
                 data[name] = np.array(tok[j + 4:j + 4 + nc * nf], float).reshape(nf, nc).squeeze()
                 break
+    data["_points"], data["_conn"], data["_nfaces"] = P, conn, nf
     return C, A, data
+
+
+def write_wall_vtk(path, wdat, fields):
+    """Wall surface as legacy ascii VTK with per-face fields (ParaView: File > Open)."""
+    P, conn, nf = wdat["_points"], wdat["_conn"], wdat["_nfaces"]
+    out = ["# vtk DataFile Version 2.0", "walls with oil deposition", "ASCII", "DATASET POLYDATA",
+           f"POINTS {len(P)} float"]
+    out += [f"{x:.6g} {y:.6g} {z:.6g}" for x, y, z in P]
+    out.append(f"POLYGONS {nf} {len(conn)}")
+    k = 0
+    for _ in range(nf):
+        n = conn[k]
+        out.append(" ".join(map(str, conn[k:k + 1 + n])))
+        k += 1 + n
+    out.append(f"CELL_DATA {nf}")
+    for name, vals in fields.items():
+        out += [f"SCALARS {name} float 1", "LOOKUP_TABLE default"]
+        out += [f"{v:.5g}" for v in np.nan_to_num(vals, nan=-1.0)]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(out) + "\n", encoding="utf-8")
 
 
 # ---------------------------------------------------------------- analysis
@@ -195,6 +216,7 @@ def main():
     Tg = np.zeros((nx, nt))
     tau = np.zeros((nx, nt))
     ix, it = bin_of(Cw)
+    face_bin = (ix, it)
     np.add.at(area, (ix, it), Aw)
     np.add.at(Tg, (ix, it), wdat["T"] * Aw)
     np.add.at(tau, (ix, it), np.linalg.norm(wdat["wallShearStress"], axis=1) * Aw)
@@ -268,6 +290,18 @@ def main():
                     f.write(f"{xc[i]:.0f},{0.5 * (tb[j] + tb[j + 1]):.1f},{area[i, j]:.5f},{mflux[i, j]:.5g},"
                             f"{Ti[i, j] - 273.15 if wet[i, j] else float('nan'):.1f},{Tg[i, j] - 273.15:.1f},"
                             f"{hcoef[i, j]:.1f},{Tf[i, j] - 273.15 if wet[i, j] else float('nan'):.1f}\n")
+
+    # per-face copy of the binned results for ParaView (no OpenFOAM field needed)
+    fi, ft = face_bin
+    risk = np.where(wet, np.digitize(Tf - 273.15, [300.0, 380.0]) + 1, 0)   # 0 dry, 1 low, 2 moderate, 3 high
+    vtk_out = case / "VTK" / f"walls_oil{tag}.vtk"
+    write_wall_vtk(vtk_out, wdat, {
+        "oil_flux_kg_m2s": mflux[fi, ft],
+        "T_film_C": np.where(wet[fi, ft], Tf[fi, ft] - 273.15, np.nan),
+        "T_impact_C": np.where(wet[fi, ft], Ti[fi, ft] - 273.15, np.nan),
+        "coking_risk_0dry_1low_2mod_3high": risk[fi, ft],
+    })
+    print(f"written {vtk_out} (ParaView: File > Open, colour by oil_flux_kg_m2s or coking_risk...)")
 
     if not wet.any():
         print("на стенку капли этого облака не попадают — карту осаждения не рисую")

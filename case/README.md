@@ -119,3 +119,18 @@ python ../mesh/make_blockmesh.py 0.65
 В ParaView:
 - поле `cloud:massCollisionDensity` на `patch/walls` — поток масла на стенку, кг/(м²·с);
 - траектории капель — `VTK/lagrangian/cloudTracks`.
+
+## ParaView: где масло садится на стенку
+
+`./deposition` пишет `VTK/walls_oil.vtk` — поверхность стенок с полями, посчитанными из ударов капель:
+
+| Поле | Что это |
+|---|---|
+| `oil_flux_kg_m2s` | поток масла на стенку, кг/(м²·с) |
+| `T_film_C` | оценка температуры плёнки, °C |
+| `T_impact_C` | средняя температура капель при ударе, °C |
+| `coking_risk_0dry_1low_2mod_3high` | зона риска: 0 — сухо, 1 — низкий, 2 — умеренный, 3 — высокий |
+
+ParaView: **File → Open** → `VTK/walls_oil.vtk` → **Apply** → раскраска по нужному полю.
+
+Поля OpenFOAM вида `cloud:...` на Windows в ParaView не видны: двоеточие нельзя использовать в именах файлов.
