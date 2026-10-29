@@ -11,7 +11,7 @@ runApplication checkMesh
 
 rm -rf 0 && cp -r 0.orig 0
 rm -f constant/fvModels            # gas only
-setControl endTime 2000
+setControl endTime 600     # gas settles in ~500 iterations; the spray stage continues from here
 setControl stopAt endTime
 residualControl on
 

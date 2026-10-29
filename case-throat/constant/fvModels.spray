@@ -19,6 +19,7 @@ clouds
 {
     type    clouds;
     libs    ("liblagrangianParcel.so");
+    clouds  (cloud splashCloud);    // main spray + 10 % splashes from the disk rim
 }
 
 // ************************************************************************* //

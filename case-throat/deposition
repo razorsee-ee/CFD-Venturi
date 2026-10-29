@@ -18,3 +18,9 @@ runApplication -o -s deposition foamToVTK -latestTime -ascii -noInternal -noPoin
 
 PY=$(command -v python3 || command -v python)
 "$PY" ../tools/deposition_analysis.py . "$@"
+
+# second cloud (splashes from the disk rim), if it was run
+if [ -d postProcessing/lagrangian/splashCloud ]
+then
+    "$PY" ../tools/deposition_analysis.py . --cloud splashCloud "$@"
+fi

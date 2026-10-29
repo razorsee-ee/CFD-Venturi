@@ -24,7 +24,7 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         2000;       // gas-only stage; Allrun.spray extends it
+endTime         600;        // gas-only stage; Allrun.spray extends it
 
 deltaT          1;
 

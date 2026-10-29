@@ -135,13 +135,15 @@ def read_vtk_walls(path):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("case", nargs="?", default=".")
+    ap.add_argument("--cloud", default="cloud", help="cloud name, e.g. splashCloud")
     ap.add_argument("--samples", type=int, default=4,
                     help="use the last N written cloud evaluations (skip the start-up)")
     args = ap.parse_args()
     case = Path(args.case)
     read_domain(case)
 
-    post_root = case / "postProcessing" / "lagrangian" / "cloud" / "outletParcels"
+    post_root = case / "postProcessing" / "lagrangian" / args.cloud / "outletParcels"
+    tag = "" if args.cloud == "cloud" else "_" + args.cloud
     times = sorted((d for d in post_root.glob("*") if d.is_dir()), key=lambda d: float(d.name))
     times = times[-args.samples:]
     if not times:
@@ -211,7 +213,7 @@ def main():
     # ---- summary
     out = []
     p = lambda s="": out.append(s)  # noqa: E731
-    p(f"Разобрано {nS} вычислений облака (итерации {', '.join(t.name for t in times)}), "
+    p(f"Облако {args.cloud}. Разобрано {nS} вычислений облака (итерации {', '.join(t.name for t in times)}), "
       f"масса на одно вычисление {total:.2f} кг/с")
     for patch, h in hits.items():
         m = h["mass"].sum() / nS
@@ -246,9 +248,9 @@ def main():
         p(f"Теплоотдача газ→стенка (по аналогии Кольборна): {np.nanmin(hcoef[ok]):.0f}…{np.nanmax(hcoef[ok]):.0f} Вт/(м²·К)")
     summary = "\n".join(out)
     print(summary)
-    (case / "deposition_summary.txt").write_text(summary + "\n")
+    (case / f"deposition{tag}_summary.txt").write_text(summary + "\n")
 
-    with open(case / "deposition_bins.csv", "w") as f:
+    with open(case / f"deposition{tag}_bins.csv", "w") as f:
         f.write("x_mm,theta_deg,area_m2,oil_flux_kg_m2s,T_impact_C,T_gas_C,h_W_m2K,T_film_C\n")
         for i in range(nx):
             for j in range(nt):
@@ -257,10 +259,10 @@ def main():
                             f"{Ti[i, j] - 273.15 if wet[i, j] else float('nan'):.1f},{Tg[i, j] - 273.15:.1f},"
                             f"{hcoef[i, j]:.1f},{Tf[i, j] - 273.15 if wet[i, j] else float('nan'):.1f}\n")
 
-    plot(case, xb, tb, mflux, Tf, wet, ok, hits, nS, xc, area, summary)
+    plot(case, xb, tb, mflux, Tf, wet, ok, hits, nS, xc, area, summary, tag)
 
 
-def plot(case, xb, tb, mflux, Tf, wet, ok, hits, nS, xc, area, summary):
+def plot(case, xb, tb, mflux, Tf, wet, ok, hits, nS, xc, area, summary, tag=""):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -336,10 +338,11 @@ def plot(case, xb, tb, mflux, Tf, wet, ok, hits, nS, xc, area, summary):
     a.legend()
     a.set_title("Насколько капли успевают нагреться до удара")
 
-    fig.suptitle("Осаждение масла и риск коксования (оценка; плёнка не моделируется)", fontsize=13)
+    fig.suptitle("Осаждение масла и риск коксования (оценка; плёнка не моделируется)"
+                 + (f" — облако {tag[1:]}" if tag else ""), fontsize=13)
     fig.tight_layout()
-    fig.savefig(case / "deposition.png", dpi=110)
-    print(f"written {case / 'deposition.png'}, deposition_bins.csv, deposition_summary.txt")
+    fig.savefig(case / f"deposition{tag}.png", dpi=110)
+    print(f"written {case / f'deposition{tag}.png'}, deposition{tag}_bins.csv, deposition{tag}_summary.txt")
 
 
 if __name__ == "__main__":

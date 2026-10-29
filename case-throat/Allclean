@@ -5,7 +5,7 @@ cd ${0%/*} || exit 1
 
 cleanCase
 rm -rf 0 constant/fvModels constant/geometry/*.eMesh convergence.png case.foam
-setControl endTime 2000
+setControl endTime 600
 setControl stopAt endTime
 residualControl on
 
