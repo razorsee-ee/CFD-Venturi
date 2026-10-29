@@ -11,6 +11,7 @@ Usage:  python3 make_blockmesh.py [scale] [--zone full|throat]
         --zone throat nozzle, end of the convergent, throat and 0.6 m of the
                       diffuser + 0.3 m straight extension -> case-throat/
         --zone rim    same domain -> case-rim/ (spray from the disk rim, breakup)
+        --zone rim-reverse  same, nozzle flange turned by 180 deg -> case-rim-reverse/
 """
 import argparse
 import math
@@ -23,7 +24,7 @@ import params as p  # noqa: E402
 
 _ap = argparse.ArgumentParser()
 _ap.add_argument("scale", nargs="?", type=float, default=1.0)
-_ap.add_argument("--zone", choices=("full", "throat", "rim"), default="full")
+_ap.add_argument("--zone", choices=("full", "throat", "rim", "rim-reverse"), default="full")
 ARGS = _ap.parse_args()
 SCALE = ARGS.scale
 N_T = 24                # cells per quarter circumference (and across the central square)
@@ -63,6 +64,7 @@ ZONES = {
         ]),
 }
 ZONES["rim"] = dict(ZONES["throat"], case="case-rim")   # same domain, spray from the disk rim
+ZONES["rim-reverse"] = dict(ZONES["throat"], case="case-rim-reverse")   # nozzle turned upstream
 ZONE = ZONES[ARGS.zone]
 STATIONS = ZONE["stations"]
 

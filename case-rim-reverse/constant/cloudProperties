@@ -1,0 +1,201 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      cloudProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// REVERSED NOZZLE: the lance flange turned by 180 deg about the lance axis, so the
+// nozzle body and the deflector disk point UPSTREAM (disk at x = 2.076...2.084 m,
+// in front of the lance). Otherwise identical to case-rim.
+//
+// Heavy oil 32 t/h at 100 C leaving the RIM of the D65 deflector disk.
+// The jet from the tube spreads over the disk and leaves the rim as a ~1.5 mm
+// sheet (7.7 l/s at ~25 m/s); here it leaves as large primary drops
+// (sheet/ligament size, ~1 mm) that the gas then breaks up (Reitz-Diwakar:
+// bag and stripping breakup) - the droplet size is a RESULT, not an input.
+// Liquid properties: constant/physicalProperties (liquids/oil).
+// No evaporation/condensation. Droplets touching a wall leave the calculation
+// (per-patch statistics, ./deposition).
+
+type        sprayCloud;
+
+solution
+{
+    coupled         true;
+    transient       no;
+    calcFrequency   10;
+    maxTrackTime    0.3;        // s; the gas crosses this short domain in ~0.05 s
+    maxCo           0.3;
+    cellValueSourceCorrection off;
+
+    sourceTerms
+    {
+        resetOnStartup  false;
+        schemes
+        {
+            rho             semiImplicit 0.5;
+            U               semiImplicit 0.5;
+            Yi              semiImplicit 0.5;
+            h               semiImplicit 0.5;
+            radiation       semiImplicit 1;
+        }
+    }
+
+    interpolationSchemes
+    {
+        rho             cell;
+        U               cellPoint;
+        mu              cell;
+        T               cell;
+        Cp              cell;
+        kappa           cell;
+        p               cell;
+    }
+
+    integrationSchemes
+    {
+        U               Euler;
+        T               analytical;
+    }
+}
+
+constantProperties
+{
+    T0              373.15;     // oil at 100 C
+    rho0            1150;       // placeholders, reset from the liquid properties
+    Cp0             1950;
+    constantVolume  false;
+}
+
+subModels
+{
+    particleForces
+    {
+        sphereDrag;
+        gravity;
+    }
+
+    injectionModels
+    {
+        diskRim
+        {
+            type            coneInjection;
+            massFlowRate    8.889;          // kg/s = 32 t/h
+            parcelsPerSecond 4000;
+            uniformParcelSize volume;
+
+            position        (2.080 0 0);    // mid-thickness of the reversed disk (2.076...2.084)
+            direction       (-1 0 0);       // nozzle points upstream
+            injectionMethod disc;
+            dInner          0.066;          // r = 33...35 mm: right at the D65 rim
+            dOuter          0.070;
+            thetaInner      80;             // angle from the upstream direction: the sheet
+            thetaOuter      95;             // leaves the flat disk ~radially (+-10 deg)
+
+            flowType        constantVelocity;
+            Umag            25;             // m/s, jet speed minus spreading losses
+
+            sizeDistribution
+            {
+                type        RosinRammler;   // primary drops from the ~1.5 mm sheet
+                Q           3;
+                min         0.3e-3;
+                max         2.0e-3;
+                d           1.0e-3;
+                n           3;
+            }
+        }
+    }
+
+    dispersionModel stochasticDispersionRAS;
+
+    patchInteractionModel localInteraction;
+
+    heatTransferModel RanzMarshall;
+
+    compositionModel singlePhaseMixture;
+
+    phaseChangeModel none;
+
+    surfaceFilmModel none;
+
+    atomisationModel none;
+
+    breakupModel    ReitzDiwakar;
+
+    stochasticCollisionModel none;
+
+    radiation       off;
+
+    localInteractionCoeffs
+    {
+        patches
+        (
+            "(inlet|outlet|walls|nozzle)"
+            {
+                type    escape;
+            }
+        );
+    }
+
+    RanzMarshallCoeffs
+    {
+        BirdCorrection  false;
+    }
+
+    singlePhaseMixtureCoeffs
+    {
+        phases
+        (
+            liquid
+            {
+                oil     1;
+            }
+        );
+    }
+
+    ReitzDiwakarCoeffs
+    {
+        solveOscillationEq no;
+        Cbag            6;
+        Cb              0.785;
+        Cstrip          0.5;
+        Cs              10;
+    }
+}
+
+cloudFunctions
+{
+    deposition
+    {
+        type            patchCollisionDensity;
+        minSpeed        0;
+    }
+
+    outletParcels
+    {
+        type            patchPostProcessing;
+        maxStoredParcels 20000;
+        patches         (outlet walls nozzle);
+    }
+
+    tracks
+    {
+        type            particleTracks;
+        trackInterval   5;
+        maxSamples      200000;
+        resetOnWrite    yes;
+    }
+}
+
+// ************************************************************************* //

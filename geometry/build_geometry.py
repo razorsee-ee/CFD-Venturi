@@ -57,10 +57,15 @@ def export_patch(faces, name):
         path.write_text("\n".join(lines) + "\n")
 
 
-def export_cfd_nozzle():
-    path = Path(__file__).parent.parent / "case" / "constant" / "geometry" / "nozzle.stl"
+def export_cfd_nozzle(case="case", reverse=False):
+    """Closed nozzle surface for snappyHexMesh; reverse=True: flange turned by 180 deg
+    about the lance axis, i.e. nozzle body and disk pointing upstream."""
+    path = Path(__file__).parent.parent / case / "constant" / "geometry" / "nozzle.stl"
     path.parent.mkdir(parents=True, exist_ok=True)
-    nozzle(struts=False).val().scale(1e-3).exportStl(str(path), tolerance=5e-5, angularTolerance=0.1, ascii=True)
+    solid = nozzle(struts=False)
+    if reverse:
+        solid = solid.mirror("YZ", basePointVector=(p.X_STEM, 0, 0))
+    solid.val().scale(1e-3).exportStl(str(path), tolerance=5e-5, angularTolerance=0.1, ascii=True)
     lines = path.read_text().splitlines()
     lines[0], lines[-1] = "solid nozzle", "endsolid nozzle"
     path.write_text("\n".join(lines) + "\n")
