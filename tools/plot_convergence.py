@@ -138,6 +138,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("case", nargs="?", default=".")
     ap.add_argument("--watch", type=float, default=0, help="refresh period, s (opens a window)")
+    ap.add_argument("--html", type=float, default=0,
+                    help="refresh period, s: no window, keep convergence.png fresh and write "
+                         "convergence.html that reloads it in a browser")
     args = ap.parse_args()
     case = Path(args.case)
     if not args.watch:
@@ -145,7 +148,23 @@ def main():
     import matplotlib.pyplot as plt
 
     fig = plt.figure(figsize=(13, 8))
-    if args.watch:
+    if args.html:
+        write_html(case, args.html)
+        last_change = time.time()
+        newest = 0.0
+        while time.time() - last_change < 1800:   # quit 30 min after the run stopped writing
+            files = list((case / "postProcessing").rglob("*.dat")) if (case / "postProcessing").is_dir() else []
+            m = max((f.stat().st_mtime for f in files), default=0.0)
+            if m > newest:
+                newest, last_change = m, time.time()
+            try:
+                draw(fig, case)
+                fig.savefig(case / "convergence.tmp.png", dpi=100)
+                (case / "convergence.tmp.png").replace(case / "convergence.png")  # never a half-written file
+            except Exception as e:
+                print(f"{time.strftime('%H:%M:%S')} skipped one refresh: {e!r}", flush=True)
+            time.sleep(args.html)
+    elif args.watch:
         try:
             fig.canvas.manager.set_window_title(f"Сходимость: {case.resolve().name}")
         except Exception:
@@ -165,6 +184,22 @@ def main():
         draw(fig, case)
         fig.savefig(case / "convergence.png", dpi=100)
         print(f"written {case / 'convergence.png'}")
+
+
+def write_html(case, period):
+    """A page that reloads convergence.png every period seconds (open it in any browser)."""
+    ms = int(period * 1000)
+    (case / "convergence.html").write_text(f"""<!doctype html>
+<html><head><meta charset="utf-8"><title>Сходимость: {case.resolve().name}</title>
+<style>body{{margin:0;background:#fff;font:14px sans-serif}} img{{width:100%;height:auto;display:block}}
+#t{{position:fixed;right:8px;top:4px;color:#666}}</style></head>
+<body><div id="t"></div><img id="p" src="convergence.png">
+<script>
+function upd(){{const i=new Image();i.onload=()=>{{p.src=i.src;t.textContent='обновлено '+new Date().toLocaleTimeString()}};
+i.src='convergence.png?'+Date.now()}}
+setInterval(upd,{ms});upd();
+</script></body></html>
+""", encoding="utf-8")
 
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ python ../mesh/make_blockmesh.py 0.65
 ./Allrun.spray
 ```
 
-Окно с графиками открывается само (`./plot`). Картинка дублируется в `convergence.png`.
+Графики сходимости открываются сами (`./plot`): в браузере открывается страница `convergence.html`, которая каждые 20 с подгружает свежий `convergence.png`. Окно matplotlib — `./plot gui`, оно на части Windows-машин не обновляется.
 
 Скрипты меняют в `system/` только отдельные значения: `endTime`, `stopAt`, `residualControl`. После `./Allclean` файлы снова совпадают с версией в git, так что `git pull` не конфликтует.
 

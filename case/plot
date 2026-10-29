@@ -1,17 +1,40 @@
 #!/bin/sh
-# Open the live convergence window in the background (refresh every 20 s).
+# Live convergence plots, refreshed every 20 s.
+#   ./plot       convergence.png kept up to date + convergence.html opened in the browser
+#   ./plot gui   matplotlib window instead (may not refresh on some Windows/MSYS setups)
 # Also called by Allrun / Allrun.spray / Allcontinue.
 cd ${0%/*} || exit 1
 
 PY=$(command -v python3 || command -v python)
-[ -z "$PY" ] && { echo "plot: python not found, skipping convergence window"; exit 0; }
+[ -z "$PY" ] && { echo "plot: python not found, skipping convergence plots"; exit 0; }
 
 if ! "$PY" -c "import matplotlib" > /dev/null 2>&1
 then
     echo "plot: installing matplotlib (one time)..."
     "$PY" -m pip install --user --quiet matplotlib || {
-        echo "plot: could not install matplotlib, run: $PY -m pip install matplotlib"; exit 0; }
+        echo "plot: no matplotlib; in blueCFD: pacman -S mingw-w64-x86_64-python-matplotlib"; exit 0; }
 fi
 
-echo "plot: convergence window opens in a moment (also saved to convergence.png)"
-"$PY" ../tools/plot_convergence.py . --watch 20 > log.plot 2>&1 &
+# stop an older plotter of this case, if any
+[ -f .plot.pid ] && kill "$(cat .plot.pid)" 2>/dev/null
+
+if [ "$1" = gui ]
+then
+    "$PY" ../tools/plot_convergence.py . --watch 20 > log.plot 2>&1 &
+    echo $! > .plot.pid
+    echo "plot: matplotlib window opens in a moment"
+    exit 0
+fi
+
+"$PY" ../tools/plot_convergence.py . --html 20 > log.plot 2>&1 &
+echo $! > .plot.pid
+sleep 3
+page="$PWD/convergence.html"
+if command -v cygpath > /dev/null 2>&1
+then
+    explorer.exe "$(cygpath -w "$page")" > /dev/null 2>&1 || true   # Windows: default browser
+elif command -v xdg-open > /dev/null 2>&1
+then
+    xdg-open "$page" > /dev/null 2>&1 &
+fi
+echo "plot: convergence.html (refreshes every 20 s): $page"

@@ -4,7 +4,8 @@ cd ${0%/*} || exit 1
 . ./bin.sh
 
 cleanCase
-rm -rf 0 constant/fvModels constant/geometry/*.eMesh convergence.png case.foam
+[ -f .plot.pid ] && kill "$(cat .plot.pid)" 2>/dev/null
+rm -rf 0 constant/fvModels constant/geometry/*.eMesh convergence*.png convergence.html .plot.pid case.foam
 setControl endTime 600
 setControl stopAt endTime
 residualControl on
