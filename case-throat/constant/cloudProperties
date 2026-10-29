@@ -25,7 +25,7 @@ solution
     coupled         true;
     transient       no;
     calcFrequency   10;         // cloud is re-tracked every 10 gas iterations
-    maxTrackTime    1.0;        // s, > residence time in the scrubber
+    maxTrackTime    0.3;        // s; the gas crosses this short domain in ~0.05 s
     maxCo           0.3;
     cellValueSourceCorrection off;
 

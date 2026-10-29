@@ -30,7 +30,7 @@ solution
     coupled         true;
     transient       no;
     calcFrequency   10;         // cloud is re-tracked every 10 gas iterations
-    maxTrackTime    1.0;        // s, > residence time in the scrubber
+    maxTrackTime    0.3;        // s; the gas crosses this short domain in ~0.05 s
     maxCo           0.3;
     cellValueSourceCorrection off;
 
@@ -89,11 +89,11 @@ subModels
             parcelsPerSecond 3000;
             uniformParcelSize volume;
 
-            position        (2.410 0 0);    // mid-thickness of the disk (2.406...2.414)
+            position        (2.420 0 0);    // 6 mm behind the disk face: away from the snapped cells at the rim
             direction       (1 0 0);
             injectionMethod disc;
-            dInner          0.068;          // just outside the D65 rim
-            dOuter          0.074;
+            dInner          0.070;          // r = 35...45 mm, just outside the D65 rim
+            dOuter          0.090;
             thetaInner      0;              // forward ...
             thetaOuter      150;            // ... radial ... and backwards
 
