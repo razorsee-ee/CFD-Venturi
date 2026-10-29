@@ -16,4 +16,9 @@ FoamFile
 
 #includeEtc "caseDicts/mesh/generation/meshQualityDict.cfg"
 
+// Lagrangian tracking needs every face to have a valid tet decomposition,
+// otherwise the droplets spam "No base point for face ..." warnings and the
+// spray run crawls. The default (-1e30) does not check it.
+minTetQuality   1e-15;
+
 // ************************************************************************* //
