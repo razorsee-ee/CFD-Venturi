@@ -1,0 +1,23 @@
+#!/bin/sh
+# Take the inlet profiles (swirl, turbulence, temperature) for case-throat from
+# the latest saved solution of the full-scrubber case, at the inlet plane x0.
+# Usage: ./mapInlet [path to the full case, default ../case]
+# Use a converged gas-only solution of the full case (after ./Allrun there).
+cd ${0%/*} || exit 1
+
+SRC=${1:-../case}
+X=$(sed -n 's/.*domain (mm): x0 = \([0-9.]*\),.*/\1/p' system/blockMeshDict | awk '{print $1/1000}')
+[ -z "$X" ] && { echo "mapInlet: run python ../mesh/make_blockmesh.py <scale> --zone throat first"; exit 1; }
+
+(
+    cd "$SRC" || exit 1
+    [ -d processor0 ] && reconstructPar -latestTime > log.reconstructPar.mapInlet 2>&1
+    rm -rf postProcessing/inletCut
+    foamPostProcess -latestTime \
+        -func "cutPlaneSurface(name=inletCut, point=($X 0 0), normal=(1 0 0), fields=(U T k omega), surfaceFormat=foam, interpolate=false)" \
+        > log.mapInlet 2>&1
+) || exit 1
+
+t=$(ls "$SRC/postProcessing/inletCut" | sort -g | tail -1)
+PY=$(command -v python3 || command -v python)
+"$PY" ../tools/make_inlet_data.py "$SRC/postProcessing/inletCut/$t/cutPlane" . && echo "mapInlet: inlet data from $SRC, iteration $t"

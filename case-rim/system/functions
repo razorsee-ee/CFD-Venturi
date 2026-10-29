@@ -1,0 +1,27 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      functions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#includeFunc residuals(p, U, h, k, omega)
+
+#includeFunc patchAverage(patch=inlet, fields=(p T), name=inletAverage)
+#includeFunc patchAverage(patch=outlet, fields=(p T), name=outletAverage)
+#includeFunc patchFlowRate(patch=outlet, name=outletMassFlow)
+
+#includeFunc wallShearStress(executeControl=writeTime)
+#includeFunc yPlus(executeControl=writeTime)
+#includeFunc MachNo(executeControl=writeTime)
+
+// ************************************************************************* //

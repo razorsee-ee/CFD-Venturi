@@ -10,6 +10,7 @@ Usage:  python3 make_blockmesh.py [scale] [--zone full|throat]
         --zone full   (default) whole scrubber + 2 m outlet extension -> case/
         --zone throat nozzle, end of the convergent, throat and 0.6 m of the
                       diffuser + 0.3 m straight extension -> case-throat/
+        --zone rim    same domain -> case-rim/ (spray from the disk rim, breakup)
 """
 import argparse
 import math
@@ -22,7 +23,7 @@ import params as p  # noqa: E402
 
 _ap = argparse.ArgumentParser()
 _ap.add_argument("scale", nargs="?", type=float, default=1.0)
-_ap.add_argument("--zone", choices=("full", "throat"), default="full")
+_ap.add_argument("--zone", choices=("full", "throat", "rim"), default="full")
 ARGS = _ap.parse_args()
 SCALE = ARGS.scale
 N_T = 24                # cells per quarter circumference (and across the central square)
@@ -61,6 +62,7 @@ ZONES = {
             (p.X_DIFF + 900.0, 25.0),   # 0.3 m straight extension
         ]),
 }
+ZONES["rim"] = dict(ZONES["throat"], case="case-rim")   # same domain, spray from the disk rim
 ZONE = ZONES[ARGS.zone]
 STATIONS = ZONE["stations"]
 

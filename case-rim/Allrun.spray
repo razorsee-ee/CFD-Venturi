@@ -1,0 +1,26 @@
+#!/bin/sh
+# Stage 2: switch the oil spray on and continue 1500 iterations from the gas solution.
+cd ${0%/*} || exit 1
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+. ./bin.sh
+
+cp constant/fvModels.spray constant/fvModels
+
+latest=$(latestTime)
+endTime=$(( ${latest:-0} + 1500 ))
+setControl endTime $endTime
+setControl stopAt endTime
+residualControl off                # the spray never "converges" to 1e-5: run to endTime
+echo "Spray run: from iteration ${latest:-0} to $endTime"
+
+./plot                             # live convergence window
+
+if [ "$(getNumberOfProcessors)" -gt 1 ]
+then
+    runParallel -s spray $(getApplication)
+    runApplication -s spray reconstructPar -latestTime
+else
+    runApplication -s spray $(getApplication)
+fi
+
+#------------------------------------------------------------------------------

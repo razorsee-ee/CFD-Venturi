@@ -1,0 +1,13 @@
+#!/bin/sh
+cd ${0%/*} || exit 1
+. $WM_PROJECT_DIR/bin/tools/CleanFunctions
+. ./bin.sh
+
+cleanCase
+[ -f .plot.pid ] && kill "$(cat .plot.pid)" 2>/dev/null
+rm -rf 0 constant/fvModels constant/geometry/*.eMesh convergence*.png convergence.html .plot.pid case.foam
+setControl endTime 600
+setControl stopAt endTime
+residualControl on
+
+#------------------------------------------------------------------------------

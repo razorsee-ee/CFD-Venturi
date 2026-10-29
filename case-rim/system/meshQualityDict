@@ -1,0 +1,24 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      meshQualityDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#includeEtc "caseDicts/mesh/generation/meshQualityDict.cfg"
+
+// Lagrangian tracking needs every face to have a valid tet decomposition,
+// otherwise the droplets spam "No base point for face ..." warnings and the
+// spray run crawls. The default (-1e30) does not check it.
+minTetQuality   1e-15;
+
+// ************************************************************************* //

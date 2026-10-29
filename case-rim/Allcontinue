@@ -1,0 +1,24 @@
+#!/bin/sh
+# Continue from the latest saved iteration (no remeshing, fields kept).
+# Optional argument: number of extra iterations, e.g.  ./Allcontinue 1000
+cd ${0%/*} || exit 1
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+. ./bin.sh
+
+setControl stopAt endTime
+if [ -n "$1" ]
+then
+    latest=$(latestTime)
+    setControl endTime $(( ${latest:-0} + $1 ))
+fi
+
+./plot                             # live convergence window
+
+if [ "$(getNumberOfProcessors)" -gt 1 ]
+then
+    runParallel -a $(getApplication)
+else
+    runApplication -a $(getApplication)
+fi
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,111 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      physicalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Hypothetical pyrolysis gas as one pseudo-component (see design/design_basis.md),
+// written as a mixture because sprayCloud needs a multicomponent carrier with a
+// vapour specie for its liquid ("oil"); its mass fraction stays 0 (no evaporation).
+thermoType
+{
+    type            heRhoThermo;
+    mixture         multicomponentMixture;
+    transport       const;
+    thermo          hConst;
+    equationOfState perfectGas;
+    specie          specie;
+    energy          sensibleEnthalpy;
+}
+
+species         (pyroGas oil);
+
+defaultSpecie   pyroGas;
+
+pyroGas
+{
+    specie
+    {
+        molWeight       67.4;
+    }
+    thermodynamics
+    {
+        Cp              2835;
+        hf              0;
+    }
+    transport
+    {
+        mu              1.82e-05;
+        Pr              1.04;
+    }
+}
+
+oil     // vapour of the liquid "oil" (never formed here: no phase change)
+{
+    specie
+    {
+        molWeight       400;
+    }
+    thermodynamics
+    {
+        Cp              2000;
+        hf              0;
+    }
+    transport
+    {
+        mu              1e-05;
+        Pr              0.8;
+    }
+}
+
+// Heavy oil as a generic liquid with constant properties at ~100 C:
+// 1.2 kg/l cold -> 1150 kg/m3, 40 cSt -> 46 mPa s, sigma assumed 0.03 N/m.
+// Practically non-volatile (no phase change is modelled anyway).
+liquids
+{
+    oil
+    {
+        type    liquid;
+
+        W       400;        // kg/kmol, heavy fraction (only used for vapour properties)
+        Tc      950;
+        Pc      1.2e6;
+        Vc      1.5;
+        Zc      0.23;
+        Tt      300;
+        Pt      1;
+        Tb      700;
+        dipm    0;
+        omega   1.0;
+        delta   16000;
+
+        rho     { type constant; value 1150; }
+        pv      { type constant; value 10; }
+        hl      { type constant; value 2.5e5; }
+        Cp      { type constant; value 1950; }
+        h       { type polynomial; coeffs (-581392 1950); }   // Cp (T - 298.15)
+        Cpg     { type constant; value 2000; }
+        B       { type constant; value 0; }
+        mu      { type constant; value 0.046; }
+        mug     { type constant; value 1e-05; }
+        kappa   { type constant; value 0.12; }
+        kappag  { type constant; value 0.03; }
+        sigma   { type constant; value 0.030; }
+        D       { type constant; value 1e-06; }
+    }
+}
+
+solids
+{}
+
+// ************************************************************************* //
