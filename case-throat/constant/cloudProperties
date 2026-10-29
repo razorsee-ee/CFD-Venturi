@@ -85,7 +85,7 @@ subModels
             // the disk: injecting all 8.9 kg/s into the tiny cells at the rim
             // made the coupled gas solution blow up locally (U > 3000 m/s).
             type            coneInjection;
-            massFlowRate    8.0;            // kg/s: 90 % of 32 t/h, 10 % is splashCloud
+            massFlowRate    8.889;          // kg/s = 32 t/h (8.0 when splashCloud is on)
             parcelsPerSecond 4000;          // parcels per cloud evaluation (steady)
             uniformParcelSize volume;
 

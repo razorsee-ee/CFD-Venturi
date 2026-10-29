@@ -19,7 +19,9 @@ clouds
 {
     type    clouds;
     libs    ("liblagrangianParcel.so");
-    clouds  (cloud splashCloud);    // main spray + 10 % splashes from the disk rim
+    clouds  (cloud);    // main spray only
+    // splash test: clouds (cloud splashCloud); and set massFlowRate 8.0 in
+    // cloudProperties (splashCloud takes the other 10 %, see splashCloudProperties)
 }
 
 // ************************************************************************* //
