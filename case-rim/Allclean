@@ -6,7 +6,7 @@ cd ${0%/*} || exit 1
 cleanCase
 [ -f .plot.pid ] && kill "$(cat .plot.pid)" 2>/dev/null
 rm -rf 0 constant/fvModels constant/geometry/*.eMesh convergence*.png convergence.html .plot.pid case.foam
-setControl endTime 600
+setControl endTime 200
 setControl stopAt endTime
 residualControl on
 

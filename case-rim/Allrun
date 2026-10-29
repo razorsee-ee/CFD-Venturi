@@ -15,7 +15,7 @@ rm -f constant/fvModels            # gas only
 # T, k, omega at the inlet mapped from the full case (see ./mapInlet)
 rm -rf constant/boundaryData && mkdir -p constant/boundaryData
 cp -r constant/inletProfile constant/boundaryData/inlet
-setControl endTime 600     # gas settles in ~500 iterations; the spray stage continues from here
+setControl endTime 200     # short gas start; the gas converges together with the spray afterwards
 setControl stopAt endTime
 residualControl on
 
