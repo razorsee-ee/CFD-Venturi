@@ -259,6 +259,9 @@ def main():
                             f"{Ti[i, j] - 273.15 if wet[i, j] else float('nan'):.1f},{Tg[i, j] - 273.15:.1f},"
                             f"{hcoef[i, j]:.1f},{Tf[i, j] - 273.15 if wet[i, j] else float('nan'):.1f}\n")
 
+    if not wet.any():
+        print("на стенку капли этого облака не попадают — карту осаждения не рисую")
+        return
     plot(case, xb, tb, mflux, Tf, wet, ok, hits, nS, xc, area, summary, tag)
 
 
