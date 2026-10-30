@@ -1,0 +1,51 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+
+application     foamRun;
+
+solver          incompressibleVoF;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         0.012;          // s: jet reaches the disk in ~3.7 ms, the sheet crosses r = 0.15 m by ~10 ms
+
+deltaT          1e-07;
+
+writeControl    adjustableRunTime;
+
+writeInterval   0.0005;
+
+purgeWrite      0;
+
+writeFormat     binary;
+
+writePrecision  8;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  yes;
+
+maxCo           0.5;
+
+maxAlphaCo      0.5;
+
+maxDeltaT       1e-05;
+
+functions
+{
+    #includeFunc patchFlowRate(patch=outlet, name=outletFlow)
+}

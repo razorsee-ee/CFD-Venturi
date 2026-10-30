@@ -1,0 +1,10 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      phaseProperties;
+}
+
+phases          (oil gas);
+
+sigma           0.030;      // N/m, assumed (heavy oil)

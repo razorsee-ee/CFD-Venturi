@@ -1,0 +1,42 @@
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    object      alpha.oil;
+}
+
+dimensions      [];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    oilInlet
+    {
+        type            fixedValue;
+        value           uniform 1;
+    }
+    gasInlet
+    {
+        type            fixedValue;
+        value           uniform 0;
+    }
+    "(nozzle|disk|outer)"
+    {
+        type            zeroGradient;
+    }
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      uniform 0;
+        value           uniform 0;
+    }
+    axis
+    {
+        type            empty;
+    }
+    "(front|back)"
+    {
+        type            wedge;
+    }
+}

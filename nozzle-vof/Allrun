@@ -1,0 +1,23 @@
+#!/bin/sh
+# Mesh + transient VOF run: oil jet -> disk -> sheet, gas flowing past.
+# ~1-2 h on 8 cores (endTime 12 ms). Pictures: ./pictures (also while it runs).
+cd ${0%/*} || exit 1
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+PY=$(command -v python3 || command -v python)
+"$PY" make_mesh.py                 # writes system/blockMeshDict
+runApplication blockMesh
+runApplication checkMesh
+
+rm -rf 0 && cp -r 0.orig 0
+touch case.foam                    # for ParaView
+
+if [ "$(getNumberOfProcessors)" -gt 1 ]
+then
+    runApplication decomposePar -force
+    runParallel $(getApplication)
+else
+    runApplication $(getApplication)
+fi
+
+#------------------------------------------------------------------------------

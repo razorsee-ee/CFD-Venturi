@@ -1,0 +1,13 @@
+#!/bin/sh
+# Pictures of the oil (sheet_<step>.png) and the sheet table (sheet_summary.txt)
+# for every written time. Works during the run too (takes what is written).
+cd ${0%/*} || exit 1
+
+[ -d processor0 ] && reconstructPar -newTimes > log.reconstructPar 2>&1
+rm -rf VTK
+foamToVTK -ascii -noFaceZones -noPointValues -fields '(alpha.oil U)' > log.foamToVTK 2>&1
+
+PY=$(command -v python3 || command -v python)
+"$PY" plot_sheet.py --all "$@"
+
+#------------------------------------------------------------------------------
