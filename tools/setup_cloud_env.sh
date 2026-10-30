@@ -58,10 +58,12 @@ else
     # 2) otherwise build from source
     if [ ! -x /opt/openfoam12/platforms/linux64GccDPInt32Opt/bin/foamRun ]; then
         log "building OpenFOAM-12 from source (2-3 hours)"
+        # a fresh container has empty package lists
+        apt-get update -qq > /tmp/apt_of12.log 2>&1
         DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
             build-essential flex bison cmake zlib1g-dev libopenmpi-dev openmpi-bin \
             libscotch-dev libptscotch-dev libreadline-dev libncurses-dev libxt-dev \
-            libboost-system-dev libboost-thread-dev libgmp-dev libmpfr-dev > /tmp/apt_of12.log 2>&1 \
+            libboost-system-dev libboost-thread-dev libgmp-dev libmpfr-dev >> /tmp/apt_of12.log 2>&1 \
             || { log "apt-get failed, see /tmp/apt_of12.log"; exit 1; }
         cd /opt || exit 1
         [ -d OpenFOAM-12 ] || git clone -q --depth 1 https://github.com/OpenFOAM/OpenFOAM-12.git
