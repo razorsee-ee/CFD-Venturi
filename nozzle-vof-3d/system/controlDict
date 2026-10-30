@@ -39,7 +39,7 @@ runTimeModifiable yes;
 
 adjustTimeStep  yes;
 
-maxCo           0.5;
+maxCo           0.9;            // binding in the gas around the disk rim (~140 m/s); oil surface: maxAlphaCo
 
 maxAlphaCo      0.5;
 

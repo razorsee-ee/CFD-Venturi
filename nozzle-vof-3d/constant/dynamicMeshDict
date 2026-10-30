@@ -12,21 +12,15 @@ topoChanger
     type            refiner;
     libs            ("libfvMeshTopoChangers.so");
 
-    refineInterval  1;
+    refineInterval  3;          // mesh change + flux correction every step cost more than half of the step
     field           alpha.oil;
     lowerRefineLevel 0.001;
     upperRefineLevel 0.999;
-    nBufferLayers   1;
+    nBufferLayers   2;          // the surface moves < 0.5 cell per step: stays inside the refined band
     maxRefinement   3;
     maxCells        3000000;   // refinement stops here
     dumpLevel       false;
 }
 
-// Moves cells between processors as the refined zone grows (parallel runs only)
-distributor
-{
-    type            distributor;
-    libs            ("libfvMeshDistributors.so");
-    redistributionInterval  20;
-    maxImbalance    0.1;
-}
+// No "distributor" (load balancing): in OpenFOAM-12 it stops with
+// "Cannot find a internal patch" on this mesh (cyclic sides split between processors).
