@@ -254,7 +254,11 @@ def main():
         with open(CASE / "sheet3d_summary.txt", "a", encoding="utf-8") as f:
             f.write("\n".join(summary) + "\n")
     if "--gif" in sys.argv:
-        from PIL import Image
+        try:
+            from PIL import Image
+        except ImportError:
+            sys.exit("frames are drawn; for sheet3d.gif install Pillow: "
+                     "pacman -S mingw-w64-x86_64-python-pillow")
         files = sorted(OUT.glob("f_*.png"))
         if len(files) > 1:
             w = 1100
