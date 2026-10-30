@@ -1,0 +1,11 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      physicalProperties.oil;
+}
+
+// heavy oil at 100 C: 1.2 kg/l cold -> 1150 kg/m3, 40 cSt
+viscosityModel  constant;
+nu              40e-06;
+rho             1150;

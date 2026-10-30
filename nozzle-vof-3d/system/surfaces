@@ -1,0 +1,33 @@
+// Light-weight output for the pictures and the animation, every 0.1 ms:
+//   iso   - the oil surface (alpha.oil = 0.5): sheet, ligaments, drops
+//   slice - the mid-plane of the sector (x-r section, as in the 2D case)
+surfaces
+{
+    type            surfaces;
+    libs            ("libsampling.so");
+    writeControl    adjustableRunTime;
+    writeInterval   0.0001;
+    surfaceFormat   vtk;
+    writeFormat     binary;
+    fields          (alpha.oil U);
+    interpolationScheme cellPoint;
+
+    surfaces
+    (
+        iso
+        {
+            type            isoSurface;
+            isoField        alpha.oil;
+            isoValue        0.5;
+            interpolate     true;
+        }
+        slice
+        {
+            type            cutPlane;
+            planeType       pointAndNormal;
+            point           (0 0 0);
+            normal          (0 0 1);
+            interpolate     false;
+        }
+    );
+}

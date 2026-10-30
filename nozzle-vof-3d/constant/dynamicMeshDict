@@ -1,0 +1,32 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      dynamicMeshDict;
+}
+
+// Adaptive refinement around the oil surface: base cells 1.6 mm,
+// maxRefinement 2 -> 0.4 mm (as the 2D case), 3 -> 0.2 mm (8x more cells there)
+topoChanger
+{
+    type            refiner;
+    libs            ("libfvMeshTopoChangers.so");
+
+    refineInterval  1;
+    field           alpha.oil;
+    lowerRefineLevel 0.001;
+    upperRefineLevel 0.999;
+    nBufferLayers   1;
+    maxRefinement   2;
+    maxCells        4000000;
+    dumpLevel       false;
+}
+
+// Moves cells between processors as the refined zone grows (parallel runs only)
+distributor
+{
+    type            distributor;
+    libs            ("libfvMeshDistributors.so");
+    redistributionInterval  20;
+    maxImbalance    0.1;
+}

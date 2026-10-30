@@ -1,0 +1,43 @@
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    object      alpha.oil;
+}
+
+dimensions      [];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    oilInlet
+    {
+        // gas only for the first 2 ms (start-up vortices at the disk rim die out), then oil
+        type            uniformFixedValue;
+        uniformValue    table ((0 0) (0.002 0) (0.0021 1) (1 1));
+    }
+    gasInlet
+    {
+        type            fixedValue;
+        value           uniform 0;
+    }
+    "(nozzle|disk|outer)"
+    {
+        type            zeroGradient;
+    }
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      uniform 0;
+        value           uniform 0;
+    }
+    axis
+    {
+        type            empty;
+    }
+    "(front|back)"
+    {
+        type            cyclic;
+    }
+}
