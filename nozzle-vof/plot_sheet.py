@@ -2,11 +2,13 @@
 
 Needs VTK files from:  foamToVTK -ascii -fields '(alpha.oil U)' [-latestTime]
 Writes:
-  sheet_<time>.png   oil volume fraction and velocity magnitude, mirrored about
+  sheet_<step>.png   oil volume fraction and velocity magnitude, mirrored about
                      the axis so the jet, the disk and the sheet look like a section
   sheet_summary.txt  for the latest time: sheet angle, speed and thickness at
                      several radii (what case-rim needs for its injection)
-Usage (in nozzle-vof/):  python plot_sheet.py [--all]
+  sheet.gif          animation of all frames (with --gif)
+Usage (in nozzle-vof/):  python plot_sheet.py [--all | --gif]
+  (no option: only the latest time; frames already drawn are not redrawn)
 """
 import math
 import re
@@ -134,13 +136,27 @@ def main():
             m = re.search(r"^index\s+(\d+);", u.read_text(errors="ignore"), re.M)
             if m:
                 times[int(m.group(1))] = float(d.name)
-    sel = files if "--all" in sys.argv else files[-1:]
+    sel = files if ("--all" in sys.argv or "--gif" in sys.argv) else files[-1:]
+    frames = []
     for f in sel:
         idx = int(re.findall(r"_(\d+)\.vtk$", f.name)[0])
         t = times.get(idx, float("nan"))
+        png = CASE / f"sheet_{idx:05d}.png"
+        frames.append(png)
+        if png.exists() and f is not files[-1]:
+            continue                    # already drawn by an earlier call
         x, r, data = read_vtk(f)
-        plot(x, r, data, t, CASE / f"sheet_{idx:04d}.png")
-        print(f"written sheet_{idx:04d}.png (t = {t * 1e3:.2f} ms)")
+        plot(x, r, data, t, png)
+        print(f"written {png.name} (t = {t * 1e3:.2f} ms)")
+    if "--gif" in sys.argv and len(frames) > 1:
+        from PIL import Image
+        im = [Image.open(f).convert("RGB") for f in frames]
+        w = 800
+        im = [i.resize((w, round(i.height * w / i.width)), Image.LANCZOS).quantize(64) for i in im]
+        # 0.15 s per frame, the last one held for 2 s, endless loop
+        im[0].save(CASE / "sheet.gif", save_all=True, append_images=im[1:],
+                   duration=[150] * (len(im) - 1) + [2000], loop=0, optimize=True)
+        print(f"written sheet.gif ({len(im)} frames)")
     x, r, data = read_vtk(files[-1])
     lines = [f"Плёнка масла за кромкой диска (последний момент, {files[-1].name}):"]
     lines += sheet_parameters(x, r, data["alpha.oil"], data["U"])
