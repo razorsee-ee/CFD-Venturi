@@ -21,10 +21,6 @@ boundaryField
         type            prghTotalPressure;
         p0              uniform 0;
     }
-    axis
-    {
-        type            empty;
-    }
     "(front|back)"
     {
         type            cyclic;

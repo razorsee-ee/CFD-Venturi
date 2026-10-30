@@ -1,6 +1,6 @@
 // Light-weight output for the pictures and the animation, every 0.1 ms:
 //   iso   - the oil surface (alpha.oil = 0.5): sheet, ligaments, drops
-//   slice - the mid-plane of the sector (x-r section, as in the 2D case)
+//   slice - plane through the axis along the diagonal y = z of the quarter (x-r section)
 surfaces
 {
     type            surfaces;
@@ -26,7 +26,7 @@ surfaces
             type            cutPlane;
             planeType       pointAndNormal;
             point           (0 0 0);
-            normal          (0 0 1);
+            normal          (0 1 -1);
             interpolate     false;
         }
     );

@@ -1,0 +1,5 @@
+#!/bin/sh
+# Ask the running solver to write the current time and stop (takes a few seconds).
+cd ${0%/*} || exit 1
+sed -i "s/^\(stopAt[[:space:]]\{1,\}\)[^;]*;/\1writeNow;/" system/controlDict
+echo "stop requested: the solver writes the current time and exits"

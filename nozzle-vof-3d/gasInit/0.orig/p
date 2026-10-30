@@ -1,0 +1,26 @@
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    object      p;
+}
+
+dimensions      [0 2 -2 0 0 0 0];
+internalField   uniform 0;
+boundaryField
+{
+    // first: later entries (outlet, axis, cyclics) override it
+    ".*"
+    {
+        type            zeroGradient;
+    }
+    outlet
+    {
+        type            fixedValue;
+        value           uniform 0;
+    }
+    "(front|back)"
+    {
+        type            cyclic;
+    }
+}

@@ -1,0 +1,36 @@
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    object      omega;
+}
+
+dimensions      [0 0 -1 0 0 0 0];
+internalField   uniform 613;
+boundaryField
+{
+    "(gasInlet|oilInlet)"
+    {
+        type            fixedValue;
+        value           uniform 613;
+    }
+    "(nozzle|disk)"
+    {
+        type            omegaWallFunction;
+        value           uniform 613;
+    }
+    outer
+    {
+        type            zeroGradient;
+    }
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      uniform 613;
+        value           uniform 613;
+    }
+    "(front|back)"
+    {
+        type            cyclic;
+    }
+}

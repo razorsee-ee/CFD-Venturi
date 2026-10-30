@@ -1,0 +1,48 @@
+FoamFile
+{
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (55 0 0);
+
+boundaryField
+{
+    gasInlet
+    {
+        // gas around the nozzle in the scrubber: ~55 m/s along the axis, swirl
+        // ~25 m/s at r = 0.15 m (solid body, omega = 167 rad/s)
+        type            swirlInletVelocity;
+        origin          (0 0 0);
+        axis            (1 0 0);
+        axialVelocity   constant 55;
+        radialVelocity  constant 0;
+        omega           constant 167;
+    }
+    oilInlet
+    {
+        // 32 t/h = 7.73 l/s through the D20 orifice
+        type            fixedValue;
+        value           uniform (24.6 0 0);
+    }
+    "(nozzle|disk)"
+    {
+        type            noSlip;
+    }
+    outer
+    {
+        type            slip;
+    }
+    outlet
+    {
+        type            pressureInletOutletVelocity;
+        value           uniform (0 0 0);
+    }
+    "(front|back)"
+    {
+        type            cyclic;
+    }
+}

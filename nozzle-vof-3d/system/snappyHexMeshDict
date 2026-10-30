@@ -1,0 +1,102 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+
+#includeEtc "caseDicts/mesh/generation/snappyHexMeshDict.cfg"
+
+castellatedMesh on;
+snap            on;
+addLayers       off;
+
+// levels: 0 = 3.2 mm, 1 = 1.6, 2 = 0.8, 3 = 0.4 mm
+geometry
+{
+    lance
+    {
+        type    closedTriSurfaceMesh;
+        file    "lance.stl";
+        regions
+        {
+            nozzle   { name nozzle; }
+            oilInlet { name oilInlet; }
+        }
+    }
+    disk
+    {
+        type    closedTriSurfaceMesh;
+        file    "disk.stl";
+    }
+    // the oil jet: from the orifice to the disk
+    jet
+    {
+        type    searchableCylinder;
+        point1  (0.075 0 0);
+        point2  (0.093 0 0);
+        radius  0.0135;
+    }
+    // where the sheet leaves the disk rim
+    rim
+    {
+        type    searchableCylinder;
+        point1  (0.088 0 0);
+        point2  (0.106 0 0);
+        radius  0.042;
+    }
+}
+
+castellatedMeshControls
+{
+    features
+    (
+        { file "lance.eMesh"; levels ((0 3)); }
+        { file "disk.eMesh";  levels ((0 3)); }
+    );
+
+    refinementSurfaces
+    {
+        lance
+        {
+            level       (1 1);
+            regions
+            {
+                nozzle   { level (1 1); patchInfo { type wall; } }
+                oilInlet { level (3 3); patchInfo { type patch; } }
+            }
+        }
+        disk
+        {
+            level       (3 3);
+            patchInfo   { type wall; }
+        }
+    }
+
+    refinementRegions
+    {
+        jet { mode inside; levels ((1e15 3)); }
+        rim { mode inside; levels ((1e15 3)); }
+    }
+
+    insidePoint     (0.05 0.08 0.07);
+}
+
+snapControls
+{
+    nSmoothPatch    0;      // smoothing moved points near the axis off the cyclic planes (refiner then stops)
+    tolerance       2.0;
+    nSolveIter      50;
+    nRelaxIter      5;
+    nFeatureSnapIter 10;
+    explicitFeatureSnap true;
+    implicitFeatureSnap false;
+}
+
+addLayersControls
+{
+    layers
+    {}
+}
+
+mergeTolerance  1e-6;

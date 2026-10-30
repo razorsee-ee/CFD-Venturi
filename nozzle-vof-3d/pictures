@@ -1,0 +1,6 @@
+#!/bin/sh
+# Frames (frames/f_<time>.png), animation sheet3d.gif and sheet3d_summary.txt from
+# postProcessing/surfaces (written every 0.1 ms). Works during the run too.
+cd ${0%/*} || exit 1
+PY=$(command -v python3 || command -v python)
+"$PY" plot3d.py --gif "$@"

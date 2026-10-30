@@ -15,7 +15,7 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         0.009;          // s: oil from 2 ms, at the disk ~2.4 ms, the sheet crosses r = 0.15 m by ~8 ms
+endTime         0.007;          // s: oil from 0.5 ms, at the disk ~0.9 ms, the sheet crosses r = 0.15 m by ~6.5 ms
 
 deltaT          1e-07;
 

@@ -1,0 +1,10 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      physicalProperties;
+}
+
+// gas only (pyrolysis pseudo-gas at 470 C), same as constant/physicalProperties.gas of the VOF case
+viscosityModel  constant;
+nu              1.65e-05;

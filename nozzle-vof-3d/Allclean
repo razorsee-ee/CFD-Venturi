@@ -1,0 +1,10 @@
+#!/bin/sh
+cd ${0%/*} || exit 1
+. $WM_PROJECT_DIR/bin/tools/CleanFunctions
+
+cleanCase
+rm -rf 0 frames sheet3d.gif sheet3d_summary.txt case.foam constant/geometry/*.eMesh
+(cd gasInit && cleanCase && rm -rf 0 constant/polyMesh)
+sed -i "s/^\(stopAt[[:space:]]\{1,\}\)[^;]*;/\1endTime;/" system/controlDict
+
+#------------------------------------------------------------------------------

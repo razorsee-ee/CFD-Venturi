@@ -32,14 +32,14 @@ solvers
     {
         solver          GAMG;
         smoother        DIC;
-        tolerance       1e-7;
+        tolerance       1e-6;
         relTol          0.01;
     }
 
     p_rghFinal
     {
         $p_rgh;
-        relTol          0;
+        relTol          0.002;      // relTol 0 cost ~140 GAMG iterations per step
     }
 
     "U.*"
