@@ -105,8 +105,8 @@ def plot(x, r, data, t, path):
     pc = ax[0].tripcolor(tri, a, cmap="Blues", vmin=0, vmax=1, shading="gouraud")
     fig.colorbar(pc, ax=ax[0], label="доля масла (1 = масло)")
     Umag = np.linalg.norm(data["U"], axis=1)
-    pc = ax[1].tripcolor(tri, np.r_[Umag, Umag], cmap="viridis", shading="gouraud")
-    fig.colorbar(pc, ax=ax[1], label="|U|, м/с")
+    pc = ax[1].tripcolor(tri, np.r_[Umag, Umag], cmap="viridis", shading="gouraud", vmin=0, vmax=100)  # fixed: frames comparable
+    fig.colorbar(pc, ax=ax[1], label="|U|, м/с (выше 100 — тем же цветом)", extend="max")
     ax[1].tricontour(tri, a, levels=[0.5], colors="w", linewidths=0.7)
     for k in range(2):
         a_ = ax[k]

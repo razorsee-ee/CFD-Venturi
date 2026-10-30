@@ -31,6 +31,7 @@ DISK_X, DISK_R = (0.092, 0.100), 0.0325
 LANCE_X, LANCE_R = 0.082, 0.014
 
 
+SHADOW_MAX = 4.0                        # fixed colour scale of the shadow pictures (surfaces crossed)
 SECTOR = 90.0                           # the mesh is a quarter with rotational cyclic sides
 
 
@@ -151,12 +152,12 @@ def sheet_rim(pts, faces, data):
 
 
 def shadow(ax, u, v, w, extent, bins):
+    """Number of oil surfaces a line of sight crosses (projected area / pixel area).
+    Fixed scale for all frames: 0 (gas) ... 4 and more (several sheets/drops in a row)."""
     H, _, _ = np.histogram2d(u, v, bins=bins, range=[extent[:2], extent[2:]], weights=w)
-    H = H.T
-    if H.max() > 0:
-        H = np.log1p(H / np.percentile(H[H > 0], 50))
-    ax.imshow(H, origin="lower", extent=extent, cmap="Greys", vmin=0, vmax=max(H.max(), 1e-9) * 0.8,
-              interpolation="bilinear")
+    pix = (extent[1] - extent[0]) / bins[0] * (extent[3] - extent[2]) / bins[1]
+    return ax.imshow(H.T / pix, origin="lower", extent=extent, cmap="Greys", vmin=0, vmax=SHADOW_MAX,
+                     interpolation="bilinear")
 
 
 def frame(t, path, sector):
@@ -188,21 +189,26 @@ def frame(t, path, sector):
         if len(tri):
             P = pts[tri]
             cen = P.mean(1)
-            area = 0.5 * np.linalg.norm(np.cross(P[:, 1] - P[:, 0], P[:, 2] - P[:, 0]), axis=1)
+            nA = 0.5 * np.cross(P[:, 1] - P[:, 0], P[:, 2] - P[:, 0])   # area vector
             n = max(1, round(360 / sector))
-            X, Y, Z, W = [], [], [], []
+            X, Y, Z, WS, WF = [], [], [], [], []
             for k in range(n):
-                th = math.radians(k * sector)
+                c, s_ = math.cos(math.radians(k * sector)), math.sin(math.radians(k * sector))
                 X.append(cen[:, 0])
-                Y.append(cen[:, 1] * math.cos(th) - cen[:, 2] * math.sin(th))
-                Z.append(cen[:, 1] * math.sin(th) + cen[:, 2] * math.cos(th))
-                W.append(area)
-            X, Y, Z, W = (np.concatenate(q) * s for q, s in zip((X, Y, Z, W), (1e3, 1e3, 1e3, 1e6)))
-            shadow(ax[1], X, Y, W, [40, 250, -150, 150], (420, 600))
-            shadow(ax[2], Z, Y, W, [-150, 150, -150, 150], (500, 500))
+                Y.append(cen[:, 1] * c - cen[:, 2] * s_)
+                Z.append(cen[:, 1] * s_ + cen[:, 2] * c)
+                WS.append(np.abs(nA[:, 1] * s_ + nA[:, 2] * c))     # seen from the side (along z)
+                WF.append(np.abs(nA[:, 0]))                          # seen from downstream (along x)
+            X, Y, Z = (np.concatenate(q) * 1e3 for q in (X, Y, Z))
+            WS, WF = (np.concatenate(q) * 1e6 for q in (WS, WF))
+            shadow(ax[1], X, Y, WS, [40, 250, -150, 150], (420, 600))
+            shadow(ax[2], Z, Y, WF, [-150, 150, -150, 150], (500, 500))
             b = breakup(pts, tri)
             if b:
                 info = f"плёнка цела до r ≈ {b[0] * 1e3:.0f} мм, оторвалось кусков (в четверти): {b[1]}"
+    # colour bar always drawn (same layout in every frame, even before the oil arrives)
+    sm = matplotlib.cm.ScalarMappable(norm=matplotlib.colors.Normalize(0, SHADOW_MAX), cmap="Greys")
+    fig.colorbar(sm, ax=ax[2], label="поверхностей масла на луче", shrink=0.8)
     ax[1].set_title("масло сбоку (тень, 360°)")
     ax[2].set_title("масло со стороны выхода (тень, 360°)")
     for k, a_ in enumerate(ax):
