@@ -201,8 +201,8 @@ def frame(t, path, sector):
                 WF.append(np.abs(nA[:, 0]))                          # seen from downstream (along x)
             X, Y, Z = (np.concatenate(q) * 1e3 for q in (X, Y, Z))
             WS, WF = (np.concatenate(q) * 1e6 for q in (WS, WF))
-            shadow(ax[1], X, Y, WS, [40, 250, -150, 150], (420, 600))
-            shadow(ax[2], Z, Y, WF, [-150, 150, -150, 150], (500, 500))
+            shadow(ax[1], X, Y, WS, [40, 250, -150, 150], (210, 300))       # 1 mm pixels
+            shadow(ax[2], Z, Y, WF, [-150, 150, -150, 150], (300, 300))
             b = breakup(pts, tri)
             if b:
                 info = f"плёнка цела до r ≈ {b[0] * 1e3:.0f} мм, оторвалось кусков (в четверти): {b[1]}"
@@ -220,7 +220,7 @@ def frame(t, path, sector):
             a_.set_xlim(40, 250)
             a_.set_xlabel("x, мм (газ слева направо)")
         else:
-            a_.add_patch(plt.Circle((0, 0), DISK_R * 1e3, fc="none", ec="0.45", lw=1.5, zorder=3))
+            a_.add_patch(plt.Circle((0, 0), DISK_R * 1e3, fc="0.45", zorder=3))     # the disk hides the oil on its far side
             a_.set_xlim(-150, 150)
             a_.set_xlabel("z, мм")
         a_.set_ylim(-150, 150)
