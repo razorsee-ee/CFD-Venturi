@@ -5,7 +5,7 @@ FoamFile
     object      surfaceFeaturesDict;
 }
 
-surfaces        ("lance.stl" "disk.stl" "strut.stl");
+surfaces        ("lance.stl" "disk.stl" "stem.stl" "strut.stl");
 
 includedAngle   150;
 

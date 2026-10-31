@@ -22,5 +22,11 @@ topoChanger
     dumpLevel       false;
 }
 
-// No "distributor" (load balancing): in OpenFOAM-12 it stops with
-// "Cannot find a internal patch" on this mesh (cyclic sides split between processors).
+// Moves cells between processors as the refined zone grows (no cyclic patches here)
+distributor
+{
+    type            distributor;
+    libs            ("libfvMeshDistributors.so");
+    redistributionInterval  20;
+    maxImbalance    0.1;
+}

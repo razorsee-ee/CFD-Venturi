@@ -1,11 +1,11 @@
 """Frames, animation and sheet break-up numbers for the 3D sector VOF run (no ParaView needed).
 
 Reads postProcessing/surfaces/<time>/{slice,iso}.vtk written every 0.1 ms by system/surfaces:
-  slice - plane through the axis and the strut (x-r section)
+  slice - plane z = 0: upper half through a strut, lower half midway between struts
   iso   - oil surface alpha.oil = 0.5 (sheet, ligaments, drops)
 Writes:
   frames/f_<time>.png  three views: section; "shadow photo" from the side and from
-                       downstream (the 120 deg sector copied around the axis to 360 deg)
+                       downstream (full circle)
   sheet3d.gif          all frames (with --gif)
   sheet3d_summary.txt  per time: radius up to which the sheet is still one piece,
                        number of pieces torn off, oil sheet angle/speed at the rim
@@ -32,7 +32,7 @@ LANCE_X, LANCE_R = 0.082, 0.014
 
 
 SHADOW_MAX = 4.0                        # fixed colour scale of the shadow pictures (surfaces crossed)
-SECTOR = 120.0                          # the mesh is a 120 deg sector (one strut) with rotational cyclic sides
+SECTOR = 360.0                          # full circle (three struts)
 
 
 def read_vtk(path):
@@ -132,11 +132,11 @@ def breakup(pts, tri):
 
 
 def sheet_rim(pts, faces, data):
-    """Oil on the slice just outside the disk rim: angle, speed, thickness."""
+    """Oil on the slice just outside the disk rim, midway between struts (y < 0): angle, speed."""
     if "alpha.oil" not in data or not faces:
         return ""
     c = np.array([pts[f].mean(0) for f in faces])
-    c[:, 1] = np.hypot(c[:, 1], c[:, 2])       # radius
+    c[:, 1] = -c[:, 1]                         # y < 0 half: radius = -y (negative = other half)
     a = data["alpha.oil"]
     U = data.get("U")
     rows = []
@@ -148,7 +148,7 @@ def sheet_rim(pts, faces, data):
                      np.average(np.linalg.norm(U[sel], axis=1), weights=a[sel]) if U is not None else float("nan")))
     (x0, y0, u0), (x1, y1, u1) = rows
     ang = math.degrees(math.atan2(y1 - y0, x1 - x0))
-    return f"угол к оси {ang:4.0f}°, скорость {0.5 * (u0 + u1):4.1f} м/с (r 35–60 мм)"
+    return f"между стойками: угол к оси {ang:4.0f}°, скорость {0.5 * (u0 + u1):4.1f} м/с (r 35–60 мм)"
 
 
 def shadow(ax, u, v, w, extent, bins):
@@ -173,13 +173,12 @@ def frame(t, path, sector):
     if sl.exists():
         pts, faces, data = read_vtk(sl)
         a = data.get("alpha.oil", np.zeros(len(faces)))
-        xr = np.c_[pts[:, 0], np.hypot(pts[:, 1], pts[:, 2])] * 1e3
-        polys = [xr[f] for f in faces]
-        polys += [p * np.array([1, -1]) for p in polys]
-        pc = PolyCollection(polys, array=np.r_[a, a], cmap="Blues", clim=(0, 1), edgecolors="none")
+        xy = pts[:, :2] * 1e3                   # plane z = 0: no mirroring, y keeps its sign
+        polys = [xy[f] for f in faces]
+        pc = PolyCollection(polys, array=a, cmap="Blues", clim=(0, 1), edgecolors="none")
         ax[0].add_collection(pc)
         fig.colorbar(pc, ax=ax[0], label="доля масла", shrink=0.8)
-    ax[0].set_title("разрез через ось и стойку (доля масла)")
+    ax[0].set_title("разрез z = 0: вверху через стойку, внизу между стойками")
     # 2), 3) shadow pictures of the oil surface, sector copied around the axis
     iso = path / "iso.vtk"
     info = "масла ещё нет"
@@ -201,11 +200,11 @@ def frame(t, path, sector):
                 WF.append(np.abs(nA[:, 0]))                          # seen from downstream (along x)
             X, Y, Z = (np.concatenate(q) * 1e3 for q in (X, Y, Z))
             WS, WF = (np.concatenate(q) * 1e6 for q in (WS, WF))
-            shadow(ax[1], X, Y, WS, [40, 250, -150, 150], (210, 300))       # 1 mm pixels
-            shadow(ax[2], Z, Y, WF, [-150, 150, -150, 150], (300, 300))
+            shadow(ax[1], X, Y, WS, [30, 160, -120, 120], (130, 240))       # 1 mm pixels
+            shadow(ax[2], Z, Y, WF, [-120, 120, -120, 120], (240, 240))
             b = breakup(pts, tri)
             if b:
-                info = f"плёнка цела до r ≈ {b[0] * 1e3:.0f} мм, оторвалось кусков (в секторе 120°): {b[1]}"
+                info = f"плёнка цела до r ≈ {b[0] * 1e3:.0f} мм, оторвалось кусков: {b[1]}"
     # colour bar always drawn (same layout in every frame, even before the oil arrives)
     sm = matplotlib.cm.ScalarMappable(norm=matplotlib.colors.Normalize(0, SHADOW_MAX), cmap="Greys")
     fig.colorbar(sm, ax=ax[2], label="поверхностей масла на луче", shrink=0.8)
@@ -217,16 +216,16 @@ def frame(t, path, sector):
                                        2 * DISK_R * 1e3, fc="0.45", zorder=3))
             a_.add_patch(plt.Rectangle((-50, -LANCE_R * 1e3), LANCE_X * 1e3 + 50, 2 * LANCE_R * 1e3,
                                        fc="0.45", zorder=3))
-            a_.add_patch(plt.Rectangle((LANCE_X * 1e3, -5), 250 - LANCE_X * 1e3, 10, fc="0.6", zorder=2))  # stem
-            a_.set_xlim(40, 250)
+            a_.add_patch(plt.Rectangle((LANCE_X * 1e3, -5), (DISK_X[0] - LANCE_X) * 1e3, 10, fc="0.6", zorder=2))  # stem
+            a_.set_xlim(30, 160)
             a_.set_xlabel("x, мм (газ слева направо)")
         else:
             a_.add_patch(plt.Circle((0, 0), DISK_R * 1e3, fc="0.45", zorder=3))     # the disk hides the oil on its far side
-            a_.set_xlim(-150, 150)
+            a_.set_xlim(-120, 120)
             a_.set_xlabel("z, мм")
-        a_.set_ylim(-150, 150)
+        a_.set_ylim(-120, 120)
         a_.set_aspect("equal")
-    ax[0].set_ylabel("r, мм")
+    ax[0].set_ylabel("y, мм")
     fig.suptitle(f"t = {t * 1e3:.1f} мс   ({info})")
     fig.savefig(OUT / f"f_{t * 1e3:07.3f}.png", dpi=90)
     plt.close(fig)

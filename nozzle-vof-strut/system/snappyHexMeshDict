@@ -11,7 +11,7 @@ castellatedMesh on;
 snap            on;
 addLayers       off;
 
-// levels: 0 = 3.2 mm, 1 = 1.6, 2 = 0.8, 3 = 0.4 mm (around: 3.2 mm at r = 0.1 m, less nearer the stem)
+// levels: 0 = 3.2 mm, 1 = 1.6, 2 = 0.8, 3 = 0.4 mm
 geometry
 {
     lance
@@ -29,6 +29,11 @@ geometry
         type    closedTriSurfaceMesh;
         file    "disk.stl";
     }
+    stem
+    {
+        type    closedTriSurfaceMesh;
+        file    "stem.stl";
+    }
     strut
     {
         type    closedTriSurfaceMesh;
@@ -40,8 +45,9 @@ castellatedMeshControls
 {
     features
     (
-        { file "lance.eMesh"; levels ((0 2)); }
-        { file "disk.eMesh";  levels ((0 2)); }
+        { file "lance.eMesh"; levels ((0 3)); }
+        { file "disk.eMesh";  levels ((0 3)); }
+        { file "stem.eMesh";  levels ((0 3)); }
         { file "strut.eMesh"; levels ((0 3)); }
     );
 
@@ -53,12 +59,17 @@ castellatedMeshControls
             regions
             {
                 nozzle   { level (1 1); patchInfo { type wall; } }
-                oilInlet { level (2 2); patchInfo { type patch; } }
+                oilInlet { level (3 3); patchInfo { type patch; } }
             }
         }
         disk
         {
-            level       (2 2);
+            level       (3 3);
+            patchInfo   { type wall; }
+        }
+        stem
+        {
+            level       (3 3);
             patchInfo   { type wall; }
         }
         strut
@@ -68,19 +79,18 @@ castellatedMeshControls
         }
     }
 
-    // No refinement zones: on this polar mesh the cells near the stem are already
-    // thin around the axis and an isotropic level 3 zone there gave 2.4 million cells.
-    // The solver refines along the oil surface itself (constant/dynamicMeshDict).
+    // no refinement zones (full circle: they would cost ~1.5 M cells); the solver
+    // refines along the oil surface itself (constant/dynamicMeshDict)
     refinementRegions
     {
     }
 
-    insidePoint     (0.05 0.08 0.001);
+    insidePoint     (0.05 0.08 0.07);
 }
 
 snapControls
 {
-    nSmoothPatch    0;      // keeps points on the cyclic planes in place (the refiner checks them)
+    nSmoothPatch    3;
     tolerance       2.0;
     nSolveIter      50;
     nRelaxIter      5;

@@ -4,8 +4,10 @@ lance.stl  regions: nozzle (side, back cap, ring around the exit), oilInlet (exi
            r < 11.2 mm on the end face at x = 0.082; the mesh starts at the stem r = 5 mm,
            so the oil leaves through the annulus D22.4/10 = the area of the D20 orifice)
 disk.stl   region:  disk (D65 x 8 mm, x 0.092...0.100)
-strut.stl  region:  strut - flat bar from the lance to the disk rim, in the middle of the
-           120 deg sector (z = 0, y > 0); ends sunk into the lance and the disk
+stem.stl   region:  stem - D10 rod from inside the lance to inside the disk (the disk is
+           carried by it; behind the disk there is nothing)
+strut.stl  region:  strut - three flat bars from the lance to the disk rim at 0, 120 and
+           240 deg (the first in the plane z = 0, y > 0); ends sunk into the lance and the disk
 Usage: python make_geometry.py
 """
 import math
@@ -73,6 +75,11 @@ side(d, DISK_X[0], DISK_X[1], DISK_R)
 disc(d, DISK_X[0], DISK_R, -1)
 disc(d, DISK_X[1], DISK_R, +1)
 (OUT / "disk.stl").write_text(solid("disk", d))
+sm = []
+side(sm, X_TIP - 0.01, DISK_X[0] + 0.004, 0.005)
+disc(sm, X_TIP - 0.01, 0.005, -1)
+disc(sm, DISK_X[0] + 0.004, 0.005, +1)
+(OUT / "stem.stl").write_text(solid("stem", sm))
 
 # strut: flat bar, centre line A -> B in the (x, r = y) plane at z = 0
 A, B = (0.070, 0.016), (0.098, 0.032)           # (x, r): starts on the lance, ends inside the disk
@@ -96,9 +103,12 @@ quads = [((0, -1, -1), (0, 1, -1), (0, 1, 1), (0, -1, 1)),       # end at A   (n
          ((0, -1, -1), (1, -1, -1), (1, 1, -1), (0, 1, -1)),     # -z side
          ((0, -1, 1), (0, 1, 1), (1, 1, 1), (1, -1, 1))]         # +z side
 st = []
-for q in quads:
-    p = [c[k] for k in q]
-    facet(st, p[0], p[2], p[1])                 # outward normals
-    facet(st, p[0], p[3], p[2])
+for k in range(3):                               # three struts, 120 deg apart
+    ca, sa = math.cos(2 * math.pi * k / 3), math.sin(2 * math.pi * k / 3)
+    rot = {key: (p[0], p[1] * ca - p[2] * sa, p[1] * sa + p[2] * ca) for key, p in c.items()}
+    for q in quads:
+        p = [rot[key] for key in q]
+        facet(st, p[0], p[2], p[1])             # outward normals
+        facet(st, p[0], p[3], p[2])
 (OUT / "strut.stl").write_text(solid("strut", st))
-print("written constant/geometry/lance.stl, disk.stl, strut.stl")
+print("written constant/geometry/lance.stl, disk.stl, stem.stl, strut.stl")

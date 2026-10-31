@@ -19,7 +19,7 @@ boundaryField
         type            nutkWallFunction;
         value           uniform 0;
     }
-    "(outer|axis)"
+    outer
     {
         type            calculated;
         value           uniform 0;
@@ -28,9 +28,5 @@ boundaryField
     {
         type            calculated;
         value           uniform 0;
-    }
-    "(front|back)"
-    {
-        type            cyclic;
     }
 }

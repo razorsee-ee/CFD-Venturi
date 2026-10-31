@@ -19,8 +19,4 @@ boundaryField
         type            fixedValue;
         value           uniform 0;
     }
-    "(front|back)"
-    {
-        type            cyclic;
-    }
 }

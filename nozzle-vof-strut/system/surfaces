@@ -1,6 +1,6 @@
 // Light-weight output for the pictures and the animation, every 0.1 ms:
 //   iso   - the oil surface (alpha.oil = 0.5): sheet, ligaments, drops
-//   slice - plane through the axis and the strut (z = 0, y > 0)
+//   slice - plane z = 0: y > 0 through a strut, y < 0 midway between two struts
 surfaces
 {
     type            surfaces;

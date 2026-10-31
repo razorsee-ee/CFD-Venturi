@@ -11,7 +11,7 @@ internalField   uniform 0;
 
 boundaryField
 {
-    "(gasInlet|oilInlet|nozzle|disk|outer|stem|axis|strut)"
+    "(gasInlet|oilInlet|nozzle|disk|outer|stem|strut)"
     {
         type            fixedFluxPressure;
         value           uniform 0;
@@ -20,9 +20,5 @@ boundaryField
     {
         type            prghTotalPressure;
         p0              uniform 0;
-    }
-    "(front|back)"
-    {
-        type            cyclic;
     }
 }

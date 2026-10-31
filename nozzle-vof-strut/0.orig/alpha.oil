@@ -22,7 +22,7 @@ boundaryField
         type            fixedValue;
         value           uniform 0;
     }
-    "(nozzle|disk|outer|stem|axis|strut)"
+    "(nozzle|disk|outer|stem|strut)"
     {
         type            zeroGradient;
     }
@@ -31,9 +31,5 @@ boundaryField
         type            inletOutlet;
         inletValue      uniform 0;
         value           uniform 0;
-    }
-    "(front|back)"
-    {
-        type            cyclic;
     }
 }

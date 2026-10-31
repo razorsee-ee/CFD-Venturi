@@ -32,7 +32,7 @@ boundaryField
     {
         type            noSlip;
     }
-    "(outer|axis)"
+    outer
     {
         type            slip;
     }
@@ -40,9 +40,5 @@ boundaryField
     {
         type            pressureInletOutletVelocity;
         value           uniform (0 0 0);
-    }
-    "(front|back)"
-    {
-        type            cyclic;
     }
 }

@@ -19,7 +19,7 @@ boundaryField
         type            kqRWallFunction;
         value           uniform 11.3;
     }
-    "(outer|axis)"
+    outer
     {
         type            zeroGradient;
     }
@@ -28,9 +28,5 @@ boundaryField
         type            inletOutlet;
         inletValue      uniform 11.3;
         value           uniform 11.3;
-    }
-    "(front|back)"
-    {
-        type            cyclic;
     }
 }

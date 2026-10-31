@@ -2,13 +2,12 @@
 # 1) mesh  2) steady gas field (gasInit/, k-omega SST)  3) transient VOF from that field:
 # 0.5 ms gas only, then oil from the orifice 1 cm in front of the disk.
 # Pictures and animation: ./pictures (also while it runs).
-# Nozzle with a central stem and three struts: one 120 deg sector with one strut.
+# Nozzle with a central stem and three struts, full circle.
 cd ${0%/*} || exit 1
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
 
 PY=$(command -v python3 || command -v python)
-"$PY" make_geometry.py             # constant/geometry/lance.stl, disk.stl, strut.stl
-"$PY" make_mesh.py                 # system/blockMeshDict: 120 deg polar sector from the stem
+"$PY" make_geometry.py             # constant/geometry/lance.stl, disk.stl, stem.stl, strut.stl
 runApplication blockMesh
 runApplication surfaceFeatures
 runApplication snappyHexMesh -overwrite

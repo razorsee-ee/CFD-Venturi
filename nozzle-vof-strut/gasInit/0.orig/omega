@@ -19,7 +19,7 @@ boundaryField
         type            omegaWallFunction;
         value           uniform 613;
     }
-    "(outer|axis)"
+    outer
     {
         type            zeroGradient;
     }
@@ -28,9 +28,5 @@ boundaryField
         type            inletOutlet;
         inletValue      uniform 613;
         value           uniform 613;
-    }
-    "(front|back)"
-    {
-        type            cyclic;
     }
 }
