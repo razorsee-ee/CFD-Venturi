@@ -23,4 +23,4 @@ topoChanger
 }
 
 // No "distributor" (load balancing): in OpenFOAM-12 it stops with
-// "Cannot find a internal patch" on this mesh (cyclic sides split between processors).
+// "Cannot find a internal patch" when redistributing this case (also without cyclics).
