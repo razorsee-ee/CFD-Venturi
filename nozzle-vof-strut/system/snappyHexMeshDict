@@ -90,7 +90,7 @@ castellatedMeshControls
 
 snapControls
 {
-    nSmoothPatch    3;
+    nSmoothPatch    0;      // patch smoothing left cells the solver refinement could not split (hexRef8 nAnchors:2)
     tolerance       2.0;
     nSolveIter      50;
     nRelaxIter      5;
