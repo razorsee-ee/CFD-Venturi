@@ -1,0 +1,11 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      physicalProperties.gas;
+}
+
+// pyrolysis pseudo-gas at 470 C (mu 1.82e-5 Pa s, rho 1.106 kg/m3); Mach ~0.2 -> incompressible
+viscosityModel  constant;
+nu              1.65e-05;
+rho             1.106;

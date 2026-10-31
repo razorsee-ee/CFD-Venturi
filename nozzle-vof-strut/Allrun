@@ -1,0 +1,51 @@
+#!/bin/sh
+# 1) mesh  2) steady gas field (gasInit/, k-omega SST)  3) transient VOF from that field:
+# 0.5 ms gas only, then oil from the orifice 1 cm in front of the disk.
+# Pictures and animation: ./pictures (also while it runs).
+# Nozzle with a central stem and three struts: one 120 deg sector with one strut.
+cd ${0%/*} || exit 1
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+PY=$(command -v python3 || command -v python)
+"$PY" make_geometry.py             # constant/geometry/lance.stl, disk.stl, strut.stl
+"$PY" make_mesh.py                 # system/blockMeshDict: 120 deg polar sector from the stem
+runApplication blockMesh
+runApplication surfaceFeatures
+runApplication snappyHexMesh -overwrite
+runApplication checkMesh
+
+# --- steady gas, same mesh
+(
+    cd gasInit || exit 1
+    rm -rf constant/polyMesh 0 processor*
+    cp -r ../constant/polyMesh constant/
+    cp -r 0.orig 0
+    if [ "$(getNumberOfProcessors)" -gt 1 ]
+    then
+        runApplication decomposePar -force
+        runParallel foamRun
+        runApplication reconstructPar -latestTime
+    else
+        runApplication foamRun
+    fi
+)
+if [ -z "$(foamListTimes -case gasInit -latestTime 2>/dev/null | tail -1)" ]
+then
+    echo "steady gas run failed: see gasInit/log.*"; exit 1
+fi
+
+# --- VOF: start from the steady gas velocity (pressure follows from it in the first step)
+rm -rf 0 && cp -r 0.orig 0
+touch case.foam                    # for ParaView
+runApplication mapFields gasInit -consistent -sourceTime latestTime
+rm -f 0/p 0/k 0/omega 0/nut          # mapFields brings all gas fields; the VOF run needs only U
+
+if [ "$(getNumberOfProcessors)" -gt 1 ]
+then
+    runApplication decomposePar -force
+    runParallel $(getApplication)
+else
+    runApplication $(getApplication)
+fi
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,15 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      momentumTransport;
+}
+
+// steady RANS only to get a smooth starting gas field for the laminar VOF run
+simulationType  RAS;
+RAS
+{
+    model           kOmegaSST;
+    turbulence      on;
+    printCoeffs     off;
+}

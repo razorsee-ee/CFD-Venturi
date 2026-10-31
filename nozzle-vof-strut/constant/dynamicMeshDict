@@ -1,0 +1,26 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      dynamicMeshDict;
+}
+
+// Adaptive refinement around the oil surface: base cells 3.2 mm,
+// maxRefinement 3 -> 0.4 mm (as the 2D case), 4 -> 0.2 mm (many more cells, raise maxCells)
+topoChanger
+{
+    type            refiner;
+    libs            ("libfvMeshTopoChangers.so");
+
+    refineInterval  3;          // mesh change + flux correction every step cost more than half of the step
+    field           alpha.oil;
+    lowerRefineLevel 0.001;
+    upperRefineLevel 0.999;
+    nBufferLayers   2;          // the surface moves < 0.5 cell per step: stays inside the refined band
+    maxRefinement   3;
+    maxCells        3000000;   // refinement stops here
+    dumpLevel       false;
+}
+
+// No "distributor" (load balancing): in OpenFOAM-12 it stops with
+// "Cannot find a internal patch" on this mesh (cyclic sides split between processors).

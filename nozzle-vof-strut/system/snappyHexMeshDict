@@ -1,0 +1,98 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+
+#includeEtc "caseDicts/mesh/generation/snappyHexMeshDict.cfg"
+
+castellatedMesh on;
+snap            on;
+addLayers       off;
+
+// levels: 0 = 3.2 mm, 1 = 1.6, 2 = 0.8, 3 = 0.4 mm (around: 3.2 mm at r = 0.1 m, less nearer the stem)
+geometry
+{
+    lance
+    {
+        type    closedTriSurfaceMesh;
+        file    "lance.stl";
+        regions
+        {
+            nozzle   { name nozzle; }
+            oilInlet { name oilInlet; }
+        }
+    }
+    disk
+    {
+        type    closedTriSurfaceMesh;
+        file    "disk.stl";
+    }
+    strut
+    {
+        type    closedTriSurfaceMesh;
+        file    "strut.stl";
+    }
+}
+
+castellatedMeshControls
+{
+    features
+    (
+        { file "lance.eMesh"; levels ((0 2)); }
+        { file "disk.eMesh";  levels ((0 2)); }
+        { file "strut.eMesh"; levels ((0 3)); }
+    );
+
+    refinementSurfaces
+    {
+        lance
+        {
+            level       (1 1);
+            regions
+            {
+                nozzle   { level (1 1); patchInfo { type wall; } }
+                oilInlet { level (2 2); patchInfo { type patch; } }
+            }
+        }
+        disk
+        {
+            level       (2 2);
+            patchInfo   { type wall; }
+        }
+        strut
+        {
+            level       (3 3);
+            patchInfo   { type wall; }
+        }
+    }
+
+    // No refinement zones: on this polar mesh the cells near the stem are already
+    // thin around the axis and an isotropic level 3 zone there gave 2.4 million cells.
+    // The solver refines along the oil surface itself (constant/dynamicMeshDict).
+    refinementRegions
+    {
+    }
+
+    insidePoint     (0.05 0.08 0.001);
+}
+
+snapControls
+{
+    nSmoothPatch    0;      // keeps points on the cyclic planes in place (the refiner checks them)
+    tolerance       2.0;
+    nSolveIter      50;
+    nRelaxIter      5;
+    nFeatureSnapIter 10;
+    explicitFeatureSnap true;
+    implicitFeatureSnap false;
+}
+
+addLayersControls
+{
+    layers
+    {}
+}
+
+mergeTolerance  1e-6;

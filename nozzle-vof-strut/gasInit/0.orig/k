@@ -1,0 +1,36 @@
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    object      k;
+}
+
+dimensions      [0 2 -2 0 0 0 0];
+internalField   uniform 11.3;
+boundaryField
+{
+    "(gasInlet|oilInlet)"
+    {
+        type            fixedValue;
+        value           uniform 11.3;
+    }
+    "(nozzle|disk|stem|strut)"
+    {
+        type            kqRWallFunction;
+        value           uniform 11.3;
+    }
+    "(outer|axis)"
+    {
+        type            zeroGradient;
+    }
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      uniform 11.3;
+        value           uniform 11.3;
+    }
+    "(front|back)"
+    {
+        type            cyclic;
+    }
+}

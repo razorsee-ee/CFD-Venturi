@@ -1,0 +1,39 @@
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    object      alpha.oil;
+}
+
+dimensions      [];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    oilInlet
+    {
+        // gas only for the first 0.5 ms (the steady gas field from gasInit turns unsteady), then oil
+        type            uniformFixedValue;
+        uniformValue    table ((0 0) (0.0005 0) (0.0006 1) (1 1));
+    }
+    gasInlet
+    {
+        type            fixedValue;
+        value           uniform 0;
+    }
+    "(nozzle|disk|outer|stem|axis|strut)"
+    {
+        type            zeroGradient;
+    }
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      uniform 0;
+        value           uniform 0;
+    }
+    "(front|back)"
+    {
+        type            cyclic;
+    }
+}

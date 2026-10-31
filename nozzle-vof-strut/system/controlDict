@@ -1,0 +1,52 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+
+application     foamRun;
+
+solver          incompressibleVoF;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         0.004;          // s: oil from 0.5 ms, at the disk ~0.9 ms; the strut marks the sheet from ~1.2 ms
+
+deltaT          1e-07;
+
+writeControl    adjustableRunTime;
+
+writeInterval   0.001;          // full fields (heavy); pictures come from system/surfaces every 0.1 ms
+
+purgeWrite      0;
+
+writeFormat     binary;
+
+writePrecision  8;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  yes;
+
+maxCo           0.9;            // binding in the gas around the disk rim (~140 m/s); oil surface: maxAlphaCo
+
+maxAlphaCo      0.5;
+
+maxDeltaT       1e-05;
+
+functions
+{
+    #includeFunc patchFlowRate(patch=outlet, name=outletFlow)
+    #include "surfaces"
+}
