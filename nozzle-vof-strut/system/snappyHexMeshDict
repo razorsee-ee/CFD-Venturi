@@ -8,7 +8,9 @@ FoamFile
 #includeEtc "caseDicts/mesh/generation/snappyHexMeshDict.cfg"
 
 castellatedMesh on;
-snap            on;
+snap            off;     // castellated only: all cells stay hexahedra, so the solver's refinement
+                         // and unrefinement work (snapped cells at the strut joints broke both);
+                         // walls are 0.4 mm steps
 addLayers       off;
 
 // levels: 0 = 3.2 mm, 1 = 1.6, 2 = 0.8, 3 = 0.4 mm
