@@ -55,12 +55,15 @@ castellatedMeshControls
 
     refinementSurfaces
     {
+        // all walls the oil can touch at the finest level: a level change on a wall
+        // next to the oil (strut 0.4 mm welded to a 1.6 mm lance) made the solver's
+        // refinement fail (hexRef8 nAnchors:2)
         lance
         {
-            level       (1 1);
+            level       (3 3);
             regions
             {
-                nozzle   { level (1 1); patchInfo { type wall; } }
+                nozzle   { level (3 3); patchInfo { type wall; } }
                 oilInlet { level (3 3); patchInfo { type patch; } }
             }
         }
