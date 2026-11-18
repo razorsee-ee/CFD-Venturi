@@ -116,12 +116,8 @@
 - Размеры циклона и подвода.
 
 ## 11. Как проверять расчёты в облачном контейнере Claude
-- **Без готового OpenFOAM в окружении** его нужно собрать из исходников, ~2–3 ч на 4 ядрах:
-  - `git clone https://github.com/OpenFOAM/OpenFOAM-12` и `ThirdParty-12` в `/opt`;
-  - в `etc/bashrc`: `SCOTCH_TYPE=system`, `ParaView_TYPE=none`;
-  - apt: `build-essential flex bison cmake zlib1g-dev libopenmpi-dev openmpi-bin libscotch-dev libptscotch-dev`;
-  - `./Allwmake -j 4 -q`.
-- **Быстрее:** в настройках окружения разрешить `dl.openfoam.org` и в setup script поставить пакет `openfoam12` → `/opt/openfoam12`.
+- **Установка:** `bash tools/setup_openfoam12.sh` (вызывается из `tools/setup_cloud_env.sh`): сначала готовый пакет (минуты; `.deb` берётся с SourceForge по https со сверкой MD5, потому что apt не идёт по перенаправлению `dl.openfoam.org` → http), иначе сборка из исходников (~1 ч на 4 ядрах).
+- **Новый проект с тем же пользователем** (например, CFB-котёл): `docs/NEW_PROJECT_OPENFOAM.md` + `tools/setup_openfoam12.sh`.
 - **mpirun от root:** `OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1`.
 - **Тест на 4 ядрах:** в копии кейса в scratchpad поставить `numberOfSubdomains 4`.
 - **Осторожно:** не использовать `pkill -f` и `pgrep -f` с шаблоном, который встречается в собственной командной строке — убьёт свою же команду. Окно графиков завершать через `pkill -x python3`.
